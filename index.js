@@ -6,8 +6,7 @@ var ClientRequest = Http.ClientRequest
 var Stream = require("stream")
 var Buffer = require("buffer").Buffer
 var slice = Array.prototype.slice
-
-var Handle = require("./lib/handle")
+var StreamWrap = require("./lib/stream_wrap")
 module.exports = Mitm
 
 function Mitm() {
@@ -59,7 +58,7 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
 // Connect when called by Agent.prototype.createSocket is really called in
 // the context of the Agent, but that's not so when called by Https's Agent.
 Mitm.prototype.connect = function(Http, orig, opts, done) {
-  opts.handle = new Handle
+  opts.handle = new StreamWrap
   // Fake a regular, non-SSL socket for now as Https.TLSSocket requires more
   // mocking.
   var socket = new Net.Socket(opts)
@@ -87,8 +86,8 @@ function respond(status, headers, body) {
   resp.push("")
   resp.push(body)
 
-  this.socket.handle.write(resp.join("\n"))
-  this.socket.handle.write(null)
+  this.socket.handle.push(resp.join("\n"))
+  this.socket.handle.push(null)
 }
 
 function bind2(fn, self) {

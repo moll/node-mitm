@@ -27,14 +27,22 @@ describe("Mitm", function() {
       this.mitm.requests.length.must.equal(1)
       this.mitm.requests[0].must.equal(req)
     })
+
+    it("must allow setting headers", function*() {
+      var req = Http.request({host: "foo"})
+      req.setHeader("Content-Type", "application/json")
+      req.end()
+      req.getHeader("Content-Type").must.equal("application/json")
+    })
   })
 
   describe("clientRequest.respond", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must respond to Http.request", function*() {
+    it("must respond with status, headers and body", function*() {
       var req = Http.request({host: "foo"})
+      req.end()
       yield process.nextTick
 
       var res; req.on("response", function() { res = arguments[0] })
@@ -48,6 +56,7 @@ describe("Mitm", function() {
 
     it("must respond to Https.request", function*() {
       var req = Https.request({host: "foo"})
+      req.end()
       yield process.nextTick
 
       var res; req.on("response", function() { res = arguments[0] })
