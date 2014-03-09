@@ -7,8 +7,10 @@ var Mitm = require("..")
 describe("Mitm", function() {
   beforeEach(function() { Mitm.passthrough = false })
 
-  it("must return an instance of Mitm if called as a function", function() {
-    Mitm().must.be.an.instanceof(Mitm)
+  it("must return an instance of Mitm when called as a function", function() {
+    var mitm = Mitm()
+    mitm.must.be.an.instanceof(Mitm)
+    mitm.disable()
   })
 
   describe(".prototype.request", function() {
