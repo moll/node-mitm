@@ -5,6 +5,7 @@ var Http = require("http")
 var ClientRequest = Http.ClientRequest
 var Stream = require("stream")
 var Buffer = require("buffer").Buffer
+var Concert = require("concert")
 var StreamWrap = require("./lib/stream_wrap")
 var slice = Array.prototype.slice
 module.exports = Mitm
@@ -15,6 +16,8 @@ function Mitm() {
 
   return this.reset()
 }
+
+_.extend(Mitm.prototype, Concert)
 
 Mitm.prototype.enable = function() {
   this.origNetConnect = Net.connect
@@ -42,6 +45,8 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
 
   req.respond = respond.bind(req)
   this.requests.push(req)
+  this.trigger("request", req)
+
   return req
 }
 

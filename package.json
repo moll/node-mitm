@@ -26,12 +26,14 @@
 	"scripts": {"test": "make test"},
 
 	"dependencies": {
-		"underscore": ">= 1.1.4 < 1.6"
+		"underscore": ">= 1.1.4 < 1.6",
+		"concert": ">= 0.1.338 < 1"
 	},
 
 	"devDependencies": {
 		"mocha": ">= 1.12.0 < 2",
 		"must": "< 1",
-		"co": ">= 3.0.4 < 4"
+		"co": ">= 3.0.4 < 4",
+		"sinon": ">= 1.9 < 2"
 	}
 }

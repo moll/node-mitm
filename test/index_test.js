@@ -1,3 +1,4 @@
+var Sinon = require("sinon")
 var Http = require("http")
 var Https = require("https")
 var ClientRequest = Http.ClientRequest
@@ -26,6 +27,20 @@ describe("Mitm", function() {
       req.must.be.an.instanceof(ClientRequest)
       this.mitm.requests.length.must.equal(1)
       this.mitm.requests[0].must.equal(req)
+    })
+
+    it("must trigger request", function() {
+      var onRequest = Sinon.spy()
+      this.mitm.on("request", onRequest)
+      var req = Http.request({host: "foo"})
+      onRequest.callCount.must.equal(1)
+      onRequest.firstCall.args[0].must.equal(req)
+    })
+
+    it("must trigger request after appending to requests", function() {
+      var requests = this.mitm.requests
+      this.mitm.on("request", function() { requests.length.must.equal(1) })
+      Http.request({host: "foo"})
     })
 
     it("must allow setting headers", function*() {
