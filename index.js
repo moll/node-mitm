@@ -3,10 +3,11 @@ var Net = require("net")
 var Tls = require("tls")
 var Http = require("http")
 var ClientRequest = Http.ClientRequest
+var ServerResponse = Http.ServerResponse
 var Stream = require("stream")
-var Buffer = require("buffer").Buffer
 var Concert = require("concert")
 var StreamWrap = require("./lib/stream_wrap")
+var PipeStreamWrap = require("./lib/pipe_stream_wrap")
 var slice = Array.prototype.slice
 module.exports = Mitm
 
@@ -42,10 +43,13 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
   // order.
   opts.agent = false
   var req = orig.apply(agent, slice.call(arguments, 2))
-
+  var res = new ServerResponse(req)
   req.respond = respond.bind(req)
+  req.once("socket", assignSocket.bind(null, req, res))
+
   this.requests.push(req)
-  this.trigger("request", req)
+  this.responses.push(res)
+  this.trigger("request", req, res)
 
   return req
 }
@@ -62,12 +66,14 @@ Mitm.prototype.connect = function(Http, orig, opts, done) {
   // Connect is originally bound to the the callback in
   // Socket.prototype.connect.
   if (done) socket.once("connect", done)
+  socket.emit("connect")
 
   return socket
 }
 
 Mitm.prototype.reset = function() {
   this.requests = []
+  this.responses = []
   return this
 }
 
@@ -81,9 +87,13 @@ Mitm.prototype.disable = function() {
   return this.reset()
 }
 
-function respond(status, headers, body) {
-  this.socket.emit("connect")
+function assignSocket(req, res) {
+  var socket = new Net.Socket({handle: new PipeStreamWrap(req.socket.handle)})
+  socket.emit("connect")
+  res.assignSocket(socket)
+}
 
+function respond(status, headers, body) {
   var resp = []
   // No Keep-Alive support in HTTP/1.0. ;-)
   resp.push("HTTP/1.0 " + status + " " + Http.STATUS_CODES[status])

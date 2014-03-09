@@ -95,6 +95,16 @@ describe("Mitm", function() {
       res.read().must.equal("Hi!")
     })
 
+    it("must trigger response", function*() {
+      var req = Http.request({host: "foo"})
+      req.end()
+      yield process.nextTick
+
+      var res; req.on("response", function() { res = arguments[0] })
+      this.mitm.requests[0].respond(442, {"Content-Type": "text/html"}, "Hi!")
+      res.must.equal(req.res)
+    })
+
     it("must respond to Https.request", function*() {
       var req = Https.request({host: "foo"})
       req.end()
@@ -110,10 +120,30 @@ describe("Mitm", function() {
     })
   })
 
+  describe("serverResponse", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must respond with status, headers and body", function*() {
+      var req = Http.request({host: "foo"})
+      req.end()
+      yield process.nextTick
+
+      var server = this.mitm.responses[0]
+      server.statusCode = 442
+      server.setHeader("Content-Type", "application/json")
+      server.write("Hi!")
+
+      var client = req.res
+      req.res.statusCode.must.equal(442)
+    })
+  })
+
   describe("requests", function() {
     it("must be empty", function() {
-      new Mitm().requests.must.be.an.array()
-      new Mitm().requests.must.be.empty()
+      var mitm = new Mitm
+      mitm.requests.must.be.an.array()
+      mitm.requests.must.be.empty()
     })
   })
 })
