@@ -10,7 +10,7 @@ describe("Mitm", function() {
     Mitm().must.be.an.instanceof(Mitm)
   })
 
-  describe(".prototype.connect", function() {
+  describe(".prototype.request", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 

@@ -5,8 +5,8 @@ var Http = require("http")
 var ClientRequest = Http.ClientRequest
 var Stream = require("stream")
 var Buffer = require("buffer").Buffer
-var slice = Array.prototype.slice
 var StreamWrap = require("./lib/stream_wrap")
+var slice = Array.prototype.slice
 module.exports = Mitm
 
 function Mitm() {
@@ -32,16 +32,6 @@ Mitm.prototype.enable = function() {
   Tls.connect = _.wrap(Tls.connect, this.connect.bind(this, Tls))
 
   return this
-}
-
-Mitm.prototype.disable = function() {
-  Net.connect = this.origNetConnect
-  Net.createConnection = Net.connect
-  Http.Agent.prototype.createConnection = Net.connect
-  Http.Agent.prototype.request = this.origAgentRequest
-  Tls.connect = this.origTlsConnect
-
-  return this.reset()
 }
 
 Mitm.prototype.request = function(agent, orig, opts, done) {
@@ -74,6 +64,16 @@ Mitm.prototype.connect = function(Http, orig, opts, done) {
 Mitm.prototype.reset = function() {
   this.requests = []
   return this
+}
+
+Mitm.prototype.disable = function() {
+  Net.connect = this.origNetConnect
+  Net.createConnection = Net.connect
+  Http.Agent.prototype.createConnection = Net.connect
+  Http.Agent.prototype.request = this.origAgentRequest
+  Tls.connect = this.origTlsConnect
+
+  return this.reset()
 }
 
 function respond(status, headers, body) {
