@@ -34,6 +34,30 @@ describe("Mitm", function() {
       req.end()
       req.getHeader("Content-Type").must.equal("application/json")
     })
+
+    it("must allow writing with a buffer", function*() {
+      var req = Http.request({host: "foo"})
+      req.write(new Buffer("Hello"))
+      yield process.nextTick
+    })
+
+    it("must allow writing with a UTF-8 string", function*() {
+      var req = Http.request({host: "foo"})
+      req.write("Hello")
+      yield process.nextTick
+    })
+
+    it("must allow writing with an ASCII string", function*() {
+      var req = Http.request({host: "foo"})
+      req.write("Hello", "ascii")
+      yield process.nextTick
+    })
+
+    it("must allow writing with an UCS-2 string", function*() {
+      var req = Http.request({host: "foo"})
+      req.write("Hello", "ucs2")
+      yield process.nextTick
+    })
   })
 
   describe("clientRequest.respond", function() {
