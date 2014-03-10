@@ -44,7 +44,6 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
   opts.agent = false
   var req = orig.apply(agent, slice.call(arguments, 2))
   var res = new ServerResponse(req)
-  req.respond = respond.bind(req)
   req.once("socket", assignSocket.bind(null, req, res))
 
   this.requests.push(req)
@@ -57,11 +56,9 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
 // Connect when called by Agent.prototype.createSocket is really called in
 // the context of the Agent, but that's not so when called by Https's Agent.
 Mitm.prototype.connect = function(Http, orig, opts, done) {
-  opts.handle = new StreamWrap
   // Fake a regular, non-SSL socket for now as Https.TLSSocket requires more
   // mocking.
-  var socket = new Net.Socket(opts)
-  socket.handle = opts.handle
+  var socket = new Net.Socket(_.extend(opts, {handle: new StreamWrap}))
 
   // Connect is originally bound to the the callback in
   // Socket.prototype.connect.
@@ -88,21 +85,9 @@ Mitm.prototype.disable = function() {
 }
 
 function assignSocket(req, res) {
-  var socket = new Net.Socket({handle: new PipeStreamWrap(req.socket.handle)})
+  var socket = new Net.Socket({handle: new PipeStreamWrap(req.socket._handle)})
   socket.emit("connect")
   res.assignSocket(socket)
-}
-
-function respond(status, headers, body) {
-  var resp = []
-  // No Keep-Alive support in HTTP/1.0. ;-)
-  resp.push("HTTP/1.0 " + status + " " + Http.STATUS_CODES[status])
-  for (var header in headers) resp.push(header + ": " + headers[header])
-  resp.push("")
-  resp.push(body)
-
-  this.socket.handle.push(resp.join("\n"))
-  this.socket.handle.push(null)
 }
 
 function bind2(fn, self) {
