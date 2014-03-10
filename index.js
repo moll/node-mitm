@@ -20,6 +20,12 @@ function Mitm() {
 
 _.extend(Mitm.prototype, Concert)
 
+Mitm.prototype.length = 0
+Mitm.prototype.push = Array.prototype.push
+Mitm.prototype.pop = Array.prototype.pop
+Mitm.prototype.shift = Array.prototype.shift
+Mitm.prototype.unshift = Array.prototype.unshift
+
 Mitm.prototype.enable = function() {
   this.origNetConnect = Net.connect
   this.origTlsConnect = Tls.connect
@@ -47,7 +53,7 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
   req.server = res
   req.once("socket", assignSocket.bind(null, req, res))
 
-  this.requests.push(req)
+  this.push(req)
   this.trigger("request", req, res)
 
   return req
@@ -69,7 +75,7 @@ Mitm.prototype.connect = function(Http, orig, opts, done) {
 }
 
 Mitm.prototype.reset = function() {
-  this.requests = []
+  Array.prototype.splice.call(this, 0, this.length)
   return this
 }
 

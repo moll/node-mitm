@@ -21,15 +21,15 @@ describe("Mitm", function() {
     it("must save Http.request request", function() {
       var req = Http.request({host: "foo"})
       req.must.be.an.instanceof(ClientRequest)
-      this.mitm.requests.length.must.equal(1)
-      this.mitm.requests[0].must.equal(req)
+      this.mitm.length.must.equal(1)
+      this.mitm[0].must.equal(req)
     })
 
     it("must save Https.request request", function() {
       var req = Https.request({host: "foo"})
       req.must.be.an.instanceof(ClientRequest)
-      this.mitm.requests.length.must.equal(1)
-      this.mitm.requests[0].must.equal(req)
+      this.mitm.length.must.equal(1)
+      this.mitm[0].must.equal(req)
     })
 
     it("must trigger request", function() {
@@ -40,9 +40,11 @@ describe("Mitm", function() {
       onRequest.firstCall.args[0].must.equal(req)
     })
 
-    it("must trigger request after appending to requests", function() {
-      var requests = this.mitm.requests
-      this.mitm.on("request", function() { requests.length.must.equal(1) })
+    it("must trigger request after appending to self", function() {
+      this.mitm.on("request", function(req) {
+        this.length.must.equal(1)
+        this[0].must.equal(req)
+      }, this.mitm)
       Http.request({host: "foo"})
     })
 
@@ -98,7 +100,7 @@ describe("Mitm", function() {
       req.end()
       yield process.nextTick
 
-      var server = this.mitm.requests[0].server
+      var server = this.mitm[0].server
       server.statusCode = 442
       server.setHeader("Content-Type", "application/json")
       server.end("Hi!")
@@ -110,11 +112,36 @@ describe("Mitm", function() {
     })
   })
 
-  describe("requests", function() {
-    it("must be empty", function() {
-      var mitm = new Mitm
-      mitm.requests.must.be.an.array()
-      mitm.requests.must.be.empty()
+  describe(".prototype.length", function() {
+    it("must be zero", function() {
+      new Mitm().length.must.equal(0)
+    })
+  })
+
+  describe(".prototype.reset", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must remove requests", function*() {
+      Http.request({host: "1.example.com"}).end()
+      Http.request({host: "2.exapmle.com"}).end()
+      yield process.nextTick
+
+      this.mitm.must.have.property(0)
+      this.mitm.must.have.property(1)
+      this.mitm.reset()
+      this.mitm.must.not.have.property(0)
+      this.mitm.must.not.have.property(1)
+    })
+
+    it("must set length to zero", function*() {
+      Http.request({host: "1.example.com"}).end()
+      Http.request({host: "2.exapmle.com"}).end()
+      yield process.nextTick
+
+      this.mitm.length.must.equal(2)
+      this.mitm.reset()
+      this.mitm.length.must.equal(0)
     })
   })
 })
