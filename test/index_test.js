@@ -93,6 +93,29 @@ describe("Mitm", function() {
     })
   })
 
+  describe("incomingMessage", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must set authorized property for HTTPS", function*() {
+      var req = Https.request({host: "foo"})
+      var res; req.on("response", function() { res = arguments[0] })
+      yield process.nextTick
+
+      this.mitm[0].server.end()
+      res.client.authorized.must.be.true()
+    })
+
+    it("must not set authorized property for HTTP", function*() {
+      var req = Http.request({host: "foo"})
+      var res; req.on("response", function() { res = arguments[0] })
+      yield process.nextTick
+
+      this.mitm[0].server.end()
+      res.client.must.not.have.property("authorized")
+    })
+  })
+
   describe("serverResponse", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })

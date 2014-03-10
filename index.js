@@ -61,10 +61,11 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
 
 // Connect when called by Agent.prototype.createSocket is really called in
 // the context of the Agent, but that's not so when called by Https's Agent.
-Mitm.prototype.connect = function(Http, orig, opts, done) {
+Mitm.prototype.connect = function(Protocol, orig, opts, done) {
   // Fake a regular, non-SSL socket for now as Https.TLSSocket requires more
   // mocking.
   var socket = new Net.Socket(_.defaults({handle: new StreamWrap}, opts))
+  if (Protocol == Tls) socket.authorized = true
 
   // Connect is originally bound to the the callback in
   // Socket.prototype.connect.
