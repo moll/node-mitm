@@ -160,6 +160,25 @@ describe("Mitm", function() {
         this.mitm[0].server.end()
         response.callCount.must.equal(1)
       })
+
+      // In an app of mine Node v0.11.7 did not emit the end event, but
+      // v0.11.11 did. I'll investigate properly if this becomes a problem in
+      // later Node versions.
+      it("must make incomingMessage emit end", function*() {
+        var req = Http.request({host: "foo"})
+        yield process.nextTick
+
+        var end = Sinon.spy()
+        req.on("response", function(res) {
+          res.on("data", function() {})
+          res.on("end", end)
+        })
+
+        end.callCount.must.equal(0)
+        this.mitm[0].server.end()
+        yield process.nextTick
+        end.callCount.must.equal(1)
+      })
     })
   })
 
