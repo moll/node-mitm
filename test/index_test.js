@@ -175,7 +175,7 @@ describe("Mitm", function() {
 
     it("must remove requests and set length to zero", function*() {
       Http.request({host: "1.example.com"})
-      Http.request({host: "2.exapmle.com"})
+      Http.request({host: "2.example.com"})
       this.mitm.length.must.equal(2)
       this.mitm.must.have.property(0)
       this.mitm.must.have.property(1)
