@@ -15,7 +15,7 @@ function Mitm() {
   if (!(this instanceof Mitm))
     return Mitm.apply(Object.create(Mitm.prototype), arguments).enable()
 
-  return this.reset()
+  return this
 }
 
 _.extend(Mitm.prototype, Concert)
@@ -74,7 +74,7 @@ Mitm.prototype.connect = function(Http, orig, opts, done) {
   return socket
 }
 
-Mitm.prototype.reset = function() {
+Mitm.prototype.clear = function() {
   Array.prototype.splice.call(this, 0, this.length)
   return this
 }
@@ -86,7 +86,7 @@ Mitm.prototype.disable = function() {
   Http.Agent.prototype.request = this.origAgentRequest
   Tls.connect = this.origTlsConnect
 
-  return this.reset()
+  return this.clear()
 }
 
 function assignSocket(req, res) {

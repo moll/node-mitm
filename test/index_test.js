@@ -118,18 +118,17 @@ describe("Mitm", function() {
     })
   })
 
-  describe(".prototype.reset", function() {
+  describe(".prototype.clear", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
     it("must remove requests", function*() {
       Http.request({host: "1.example.com"}).end()
       Http.request({host: "2.exapmle.com"}).end()
-      yield process.nextTick
-
       this.mitm.must.have.property(0)
       this.mitm.must.have.property(1)
-      this.mitm.reset()
+
+      this.mitm.clear()
       this.mitm.must.not.have.property(0)
       this.mitm.must.not.have.property(1)
     })
@@ -137,10 +136,9 @@ describe("Mitm", function() {
     it("must set length to zero", function*() {
       Http.request({host: "1.example.com"}).end()
       Http.request({host: "2.exapmle.com"}).end()
-      yield process.nextTick
-
       this.mitm.length.must.equal(2)
-      this.mitm.reset()
+
+      this.mitm.clear()
       this.mitm.length.must.equal(0)
     })
   })
