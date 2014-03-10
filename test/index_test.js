@@ -48,6 +48,12 @@ describe("Mitm", function() {
       Http.request({host: "foo"})
     })
 
+  })
+
+  describe("clientRequest", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
     it("must allow setting headers", function*() {
       var req = Http.request({host: "foo"})
       req.setHeader("Content-Type", "application/json")
@@ -80,11 +86,6 @@ describe("Mitm", function() {
       req.write("Hello", "ucs2")
       yield process.nextTick
     })
-  })
-
-  describe("clientRequest", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
 
     it("must have server property with ServerResponse", function() {
       var req = Http.request({host: "foo"})
@@ -99,7 +100,6 @@ describe("Mitm", function() {
     it("must respond with status, headers and body", function*() {
       var req = Http.request({host: "foo"})
       var res; req.on("response", function() { res = arguments[0] })
-      req.end()
       yield process.nextTick
 
       var server = this.mitm[0].server
@@ -111,6 +111,32 @@ describe("Mitm", function() {
       res.headers["content-type"].must.equal("application/json")
       res.setEncoding("utf8")
       res.read().must.equal("Hi!")
+    })
+
+    describe(".write", function() {
+      it("must make clientRequest emit response", function*() {
+        var req = Http.request({host: "foo"})
+        var response = Sinon.spy()
+        req.on("response", response)
+        yield process.nextTick
+
+        response.callCount.must.equal(0)
+        this.mitm[0].server.write("Test")
+        response.callCount.must.equal(1)
+      })
+    })
+
+    describe(".end", function() {
+      it("must make clientRequest emit response", function*() {
+        var req = Http.request({host: "foo"})
+        var response = Sinon.spy()
+        req.on("response", response)
+        yield process.nextTick
+
+        response.callCount.must.equal(0)
+        this.mitm[0].server.end()
+        response.callCount.must.equal(1)
+      })
     })
   })
 
@@ -124,24 +150,17 @@ describe("Mitm", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must remove requests", function*() {
-      Http.request({host: "1.example.com"}).end()
-      Http.request({host: "2.exapmle.com"}).end()
+    it("must remove requests and set length to zero", function*() {
+      Http.request({host: "1.example.com"})
+      Http.request({host: "2.exapmle.com"})
+      this.mitm.length.must.equal(2)
       this.mitm.must.have.property(0)
       this.mitm.must.have.property(1)
 
       this.mitm.clear()
+      this.mitm.length.must.equal(0)
       this.mitm.must.not.have.property(0)
       this.mitm.must.not.have.property(1)
-    })
-
-    it("must set length to zero", function*() {
-      Http.request({host: "1.example.com"}).end()
-      Http.request({host: "2.exapmle.com"}).end()
-      this.mitm.length.must.equal(2)
-
-      this.mitm.clear()
-      this.mitm.length.must.equal(0)
     })
   })
 })
