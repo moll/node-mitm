@@ -64,7 +64,7 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
 Mitm.prototype.connect = function(Http, orig, opts, done) {
   // Fake a regular, non-SSL socket for now as Https.TLSSocket requires more
   // mocking.
-  var socket = new Net.Socket(_.extend(opts, {handle: new StreamWrap}))
+  var socket = new Net.Socket(_.defaults({handle: new StreamWrap}, opts))
 
   // Connect is originally bound to the the callback in
   // Socket.prototype.connect.
