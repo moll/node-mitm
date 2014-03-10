@@ -55,6 +55,8 @@ describe("Mitm", function() {
       req.getHeader("Content-Type").must.equal("application/json")
     })
 
+    // Without process.nextTick writes won't throw an error if
+    // the handle object lacks the necessary write functions.
     it("must allow writing with a buffer", function*() {
       var req = Http.request({host: "foo"})
       req.write(new Buffer("Hello"))
