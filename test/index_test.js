@@ -1,6 +1,7 @@
 var Sinon = require("sinon")
 var Http = require("http")
 var Https = require("https")
+var ServerResponse = Http.ServerResponse
 var ClientRequest = Http.ClientRequest
 var Mitm = require("..")
 
@@ -77,6 +78,16 @@ describe("Mitm", function() {
     })
   })
 
+  describe("clientRequest", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must have server property with ServerResponse", function() {
+      var req = Http.request({host: "foo"})
+      req.server.must.be.an.instanceof(ServerResponse)
+    })
+  })
+
   describe("serverResponse", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
@@ -87,7 +98,7 @@ describe("Mitm", function() {
       req.end()
       yield process.nextTick
 
-      var server = this.mitm.responses[0]
+      var server = this.mitm.requests[0].server
       server.statusCode = 442
       server.setHeader("Content-Type", "application/json")
       server.end("Hi!")

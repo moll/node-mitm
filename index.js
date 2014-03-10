@@ -44,10 +44,10 @@ Mitm.prototype.request = function(agent, orig, opts, done) {
   opts.agent = false
   var req = orig.apply(agent, slice.call(arguments, 2))
   var res = new ServerResponse(req)
+  req.server = res
   req.once("socket", assignSocket.bind(null, req, res))
 
   this.requests.push(req)
-  this.responses.push(res)
   this.trigger("request", req, res)
 
   return req
@@ -70,7 +70,6 @@ Mitm.prototype.connect = function(Http, orig, opts, done) {
 
 Mitm.prototype.reset = function() {
   this.requests = []
-  this.responses = []
   return this
 }
 
