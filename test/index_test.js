@@ -1,4 +1,5 @@
 var Sinon = require("sinon")
+var Net = require("net")
 var Http = require("http")
 var Https = require("https")
 var ServerResponse = Http.ServerResponse
@@ -14,40 +15,80 @@ describe("Mitm", function() {
     mitm.disable()
   })
 
-  describe(".prototype.request", function() {
+  describe("via Net.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must save Http.request request", function() {
-      var req = Http.request({host: "foo"})
-      req.must.be.an.instanceof(ClientRequest)
-      this.mitm.length.must.equal(1)
-      this.mitm[0].must.equal(req)
+    it("must trigger connect", function() {
+      var onSocket = Sinon.spy()
+      this.mitm.on("connect", onSocket)
+      var socket = Net.connect({host: "foo"})
+      onSocket.callCount.must.equal(1)
+      onSocket.firstCall.args[0].must.equal(socket)
     })
 
-    it("must save Https.request request", function() {
-      var req = Https.request({host: "foo"})
-      req.must.be.an.instanceof(ClientRequest)
-      this.mitm.length.must.equal(1)
-      this.mitm[0].must.equal(req)
+    it("must trigger connect on socket in next tick", function(done) {
+      var socket = Net.connect({host: "foo"})
+      var onSocket = Sinon.spy()
+      socket.on("connect", onSocket)
+      process.nextTick(function() { onSocket.callCount.must.equal(1) })
+      process.nextTick(done)
+    })
+
+    it("must call given callback on connect", function(done) {
+      var onSocket = Sinon.spy()
+      var socket = Net.connect({host: "foo"}, onSocket)
+      process.nextTick(function() { onSocket.callCount.must.equal(1) })
+      process.nextTick(done)
+    })
+  })
+
+  describe("via Http.request", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must return ClientRequest", function() {
+      Http.request({host: "foo"}).must.be.an.instanceof(ClientRequest)
+    })
+
+    it("must trigger connect", function() {
+      var onSocket = Sinon.spy()
+      this.mitm.on("connect", onSocket)
+      Http.request({host: "foo"})
+      onSocket.callCount.must.equal(1)
     })
 
     it("must trigger request", function() {
       var onRequest = Sinon.spy()
       this.mitm.on("request", onRequest)
       var req = Http.request({host: "foo"})
-      onRequest.callCount.must.equal(1)
-      onRequest.firstCall.args[0].must.equal(req)
+      onRequest.args[0][0].must.equal(req)
+      onRequest.args[0][1].must.be.an.instanceof(ServerResponse)
+    })
+  })
+
+  describe("via Https.request", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must return ClientRequest", function() {
+      Https.request({host: "foo"}).must.be.an.instanceof(ClientRequest)
     })
 
-    it("must trigger request after appending to self", function() {
-      this.mitm.on("request", function(req) {
-        this.length.must.equal(1)
-        this[0].must.equal(req)
-      }, this.mitm)
-      Http.request({host: "foo"})
+    it("must trigger connect", function() {
+      var onSocket = Sinon.spy()
+      this.mitm.on("connect", onSocket)
+      Https.request({host: "foo"})
+      onSocket.callCount.must.equal(1)
     })
 
+    it("must trigger request", function() {
+      var onRequest = Sinon.spy()
+      this.mitm.on("request", onRequest)
+      var req = Https.request({host: "foo"})
+      onRequest.args[0][0].must.equal(req)
+      onRequest.args[0][1].must.be.an.instanceof(ServerResponse)
+    })
   })
 
   describe("clientRequest", function() {
@@ -102,7 +143,7 @@ describe("Mitm", function() {
       var res; req.on("response", function() { res = arguments[0] })
       yield process.nextTick
 
-      this.mitm[0].server.end()
+      req.server.end()
       res.client.authorized.must.be.true()
     })
 
@@ -111,7 +152,7 @@ describe("Mitm", function() {
       var res; req.on("response", function() { res = arguments[0] })
       yield process.nextTick
 
-      this.mitm[0].server.end()
+      req.server.end()
       res.client.must.not.have.property("authorized")
     })
   })
@@ -125,10 +166,9 @@ describe("Mitm", function() {
       var res; req.on("response", function() { res = arguments[0] })
       yield process.nextTick
 
-      var server = this.mitm[0].server
-      server.statusCode = 442
-      server.setHeader("Content-Type", "application/json")
-      server.end("Hi!")
+      req.server.statusCode = 442
+      req.server.setHeader("Content-Type", "application/json")
+      req.server.end("Hi!")
 
       res.statusCode.must.equal(442)
       res.headers["content-type"].must.equal("application/json")
@@ -144,7 +184,7 @@ describe("Mitm", function() {
         yield process.nextTick
 
         response.callCount.must.equal(0)
-        this.mitm[0].server.write("Test")
+        req.server.write("Test")
         response.callCount.must.equal(1)
       })
     })
@@ -157,7 +197,7 @@ describe("Mitm", function() {
         yield process.nextTick
 
         response.callCount.must.equal(0)
-        this.mitm[0].server.end()
+        req.server.end()
         response.callCount.must.equal(1)
       })
 
@@ -175,34 +215,10 @@ describe("Mitm", function() {
         })
 
         end.callCount.must.equal(0)
-        this.mitm[0].server.end()
+        req.server.end()
         yield process.nextTick
         end.callCount.must.equal(1)
       })
-    })
-  })
-
-  describe(".prototype.length", function() {
-    it("must be zero", function() {
-      new Mitm().length.must.equal(0)
-    })
-  })
-
-  describe(".prototype.clear", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
-
-    it("must remove requests and set length to zero", function*() {
-      Http.request({host: "1.example.com"})
-      Http.request({host: "2.example.com"})
-      this.mitm.length.must.equal(2)
-      this.mitm.must.have.property(0)
-      this.mitm.must.have.property(1)
-
-      this.mitm.clear()
-      this.mitm.length.must.equal(0)
-      this.mitm.must.not.have.property(0)
-      this.mitm.must.not.have.property(1)
     })
   })
 })

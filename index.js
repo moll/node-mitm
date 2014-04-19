@@ -4,10 +4,10 @@ var Tls = require("tls")
 var Http = require("http")
 var ClientRequest = Http.ClientRequest
 var ServerResponse = Http.ServerResponse
-var Stream = require("stream")
 var Concert = require("concert")
 var StreamWrap = require("./lib/stream_wrap")
 var PipeStreamWrap = require("./lib/pipe_stream_wrap")
+var Stubs = require("./lib/stubs")
 var slice = Array.prototype.slice
 module.exports = Mitm
 
@@ -15,79 +15,61 @@ function Mitm() {
   if (!(this instanceof Mitm))
     return Mitm.apply(Object.create(Mitm.prototype), arguments).enable()
 
+  this.stubs = new Stubs
   return this
 }
 
 _.extend(Mitm.prototype, Concert)
 
-Mitm.prototype.length = 0
-Mitm.prototype.push = Array.prototype.push
-Mitm.prototype.pop = Array.prototype.pop
-Mitm.prototype.shift = Array.prototype.shift
-Mitm.prototype.unshift = Array.prototype.unshift
-
 Mitm.prototype.enable = function() {
-  this.origNetConnect = Net.connect
-  this.origTlsConnect = Tls.connect
-  this.origAgentRequest = Http.Agent.prototype.request
+  // Connect is called synchronously.
+  var netConnect = connect.bind(this)
+  this.stubs.stub(Net, "connect", netConnect)
+  this.stubs.stub(Net, "createConnection", netConnect)
+  this.stubs.stub(Http.Agent.prototype, "createConnection", netConnect)
 
-  Net.connect = _.wrap(Net.connect, this.connect.bind(this, Http))
-  Net.createConnection = Net.connect
-  Http.Agent.prototype.createConnection = Net.connect
+  // Fake a regular, non-SSL socket for now as TLSSocket requires more mocking.
+  this.stubs.stub(Tls, "connect", _.compose(authorize, netConnect))
 
-  var request = bind2(this.request, this)
-  Http.Agent.prototype.request = _.wrap(Http.Agent.prototype.request, request)
-
-  // TLS's Agent has its own createConnection which calls Tls.connect.
-  Tls.connect = _.wrap(Tls.connect, this.connect.bind(this, Tls))
+  // ClientRequest.prototype.onSocket is called synchronously.
+  var onSocket = decontextify(onRequest.bind(this))
+  onSocket = _.compose(onSocket, ClientRequest.prototype.onSocket)
+  this.stubs.stub(ClientRequest.prototype, "onSocket", onSocket)
 
   return this
 }
 
-Mitm.prototype.request = function(agent, orig, opts, done) {
-  // Disable pooling as it's simpler to fake responses when you can do so in any
-  // order.
-  opts.agent = false
-  var req = orig.apply(agent, slice.call(arguments, 2))
-  var res = new ServerResponse(req)
-  req.server = res
-  req.once("socket", assignSocket.bind(null, req, res))
-
-  this.push(req)
-  this.trigger("request", req, res)
-
-  return req
-}
-
-// Connect when called by Agent.prototype.createSocket is really called in
-// the context of the Agent, but that's not so when called by Https's Agent.
-Mitm.prototype.connect = function(Protocol, orig, opts, done) {
-  // Fake a regular, non-SSL socket for now as Https.TLSSocket requires more
-  // mocking.
+function connect(opts, done) {
   var socket = new Net.Socket(_.defaults({handle: new StreamWrap}, opts))
-  if (Protocol == Tls) socket.authorized = true
 
-  // Connect is originally bound to the the callback in
+  // The callback is originally bound to the connect event in
   // Socket.prototype.connect.
   if (done) socket.once("connect", done)
-  socket.emit("connect")
 
-  return socket
+  // Trigger connect in the next tick, otherwise it would be impossible to
+  // listen to it after calling Net.connect.
+  process.nextTick(socket.emit.bind(socket, "connect"))
+
+  return this.trigger("connect", socket), socket
 }
 
-Mitm.prototype.clear = function() {
-  Array.prototype.splice.call(this, 0, this.length)
-  return this
+function authorize(socket) {
+  return socket.authorized = true, socket
+}
+
+function onRequest(req) {
+  var res = req.server = new ServerResponse(req)
+
+  // Request's socket event will be emitted after the socket is created in
+  // Agent.prototype.createConnection and then passed over to
+  // ClientRequest.prototype.onSocket for processing on the next tick.
+  req.once("socket", assignSocket.bind(null, req, res))
+
+  this.trigger("request", req, res)
 }
 
 Mitm.prototype.disable = function() {
-  Net.connect = this.origNetConnect
-  Net.createConnection = Net.connect
-  Http.Agent.prototype.createConnection = Net.connect
-  Http.Agent.prototype.request = this.origAgentRequest
-  Tls.connect = this.origTlsConnect
-
-  return this.clear()
+  return this.stubs.restore(), this
 }
 
 function assignSocket(req, res) {
@@ -96,7 +78,7 @@ function assignSocket(req, res) {
   res.assignSocket(socket)
 }
 
-function bind2(fn, self) {
+function decontextify(fn, self) {
   return function() {
     Array.prototype.unshift.call(arguments, this)
     return fn.apply(self, arguments)
