@@ -1,4 +1,4 @@
-## Unreleased
+## 0.2.0 (Apr 19, 2014)
 - Does not store requests on an instance of `Mitm` any longer.
 - Adds `socket` event to `Mitm`.
 - Updated to work with Node v0.11.12.
