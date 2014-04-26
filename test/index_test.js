@@ -18,6 +18,38 @@ describe("Mitm", function() {
   describe("via Net.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
+    beforeEach(function() { this.sinon = Sinon.sandbox.create() })
+    afterEach(function() { this.sinon.restore() })
+
+    it("must return socket", function() {
+      this.sinon.spy(Net, "Socket")
+      var socket = Net.connect({host: "foo", port: 80})
+
+      socket.must.be.an.instanceof(Net.Socket)
+      Net.Socket.callCount.must.equal(1)
+      Net.Socket.args[0][0].host.must.equal("foo")
+      Net.Socket.args[0][0].port.must.equal(80)
+    })
+
+    it("must return socket given port", function() {
+      this.sinon.spy(Net, "Socket")
+      var socket = Net.connect(80)
+
+      socket.must.be.an.instanceof(Net.Socket)
+      Net.Socket.callCount.must.equal(1)
+      Net.Socket.args[0][0].port.must.equal(80)
+      Net.Socket.args[0][0].must.not.have.property("host")
+    })
+
+    it("must return socket given port and host", function() {
+      this.sinon.spy(Net, "Socket")
+      var socket = Net.connect(80, "10.0.0.1")
+
+      socket.must.be.an.instanceof(Net.Socket)
+      Net.Socket.callCount.must.equal(1)
+      Net.Socket.args[0][0].port.must.equal(80)
+      Net.Socket.args[0][0].host.must.equal("10.0.0.1")
+    })
 
     it("must trigger connect", function() {
       var onSocket = Sinon.spy()
@@ -29,17 +61,47 @@ describe("Mitm", function() {
 
     it("must trigger connect on socket in next tick", function(done) {
       var socket = Net.connect({host: "foo"})
-      var onSocket = Sinon.spy()
-      socket.on("connect", onSocket)
-      process.nextTick(function() { onSocket.callCount.must.equal(1) })
+      var onConnect = Sinon.spy()
+      socket.on("connect", onConnect)
+      process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
 
-    it("must call given callback on connect", function(done) {
-      var onSocket = Sinon.spy()
-      var socket = Net.connect({host: "foo"}, onSocket)
-      process.nextTick(function() { onSocket.callCount.must.equal(1) })
+    it("must call on connect given callback", function(done) {
+      var onConnect = Sinon.spy()
+      var socket = Net.connect({host: "foo"}, onConnect)
+      process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
+    })
+
+    it("must call on connect given port and callback", function(done) {
+      var onConnect = Sinon.spy()
+      var socket = Net.connect(80, onConnect)
+      process.nextTick(function() { onConnect.callCount.must.equal(1) })
+      process.nextTick(done)
+    })
+
+    // This was a bug found on Apr 26, 2014 where the host argument was taken
+    // to be the callback because arguments weren't normalized to an options
+    // object.
+    it("must call on connect given port, host and callback", function(done) {
+      var onConnect = Sinon.spy()
+      var socket = Net.connect(80, "localhost", onConnect)
+      process.nextTick(function() { onConnect.callCount.must.equal(1) })
+      process.nextTick(done)
+    })
+  })
+
+  describe("via Net.createConnection", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must trigger connect", function() {
+      var onSocket = Sinon.spy()
+      this.mitm.on("connect", onSocket)
+      var socket = Net.createConnection({host: "foo"})
+      onSocket.callCount.must.equal(1)
+      onSocket.firstCall.args[0].must.equal(socket)
     })
   })
 

@@ -9,6 +9,7 @@ var StreamWrap = require("./lib/stream_wrap")
 var PipeStreamWrap = require("./lib/pipe_stream_wrap")
 var Stubs = require("./lib/stubs")
 var slice = Array.prototype.slice
+var normalizeConnectArgs = Net._normalizeConnectArgs
 module.exports = Mitm
 
 function Mitm() {
@@ -40,6 +41,7 @@ Mitm.prototype.enable = function() {
 }
 
 function connect(opts, done) {
+  var args = normalizeConnectArgs(arguments), opts = args[0], done = args[1]
   var socket = new Net.Socket(_.defaults({handle: new StreamWrap}, opts))
 
   // The callback is originally bound to the connect event in
