@@ -27,7 +27,7 @@
 
 	"dependencies": {
 		"underscore": ">= 1.1.5 < 1.6",
-		"concert": ">= 0.1.338 < 1"
+		"concert": ">= 1.0.0 < 2"
 	},
 
 	"devDependencies": {
