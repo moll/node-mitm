@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0 (Apr 26, 2014)
 - Adds support for calling `Net.connect` with `port` and `host` arguments.
 
 ## 0.2.0 (Apr 19, 2014)
