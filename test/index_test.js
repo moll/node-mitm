@@ -105,7 +105,7 @@ describe("Mitm", function() {
       connect(80, "10.0.0.1").must.be.an.instanceof(Net.Socket)
     })
 
-    it("must trigger connect", function() {
+    it("must emit connect on Mitm", function() {
       var onConnect = Sinon.spy()
       this.mitm.on("connect", onConnect)
       var socket = connect({host: "foo"})
@@ -113,7 +113,7 @@ describe("Mitm", function() {
       onConnect.firstCall.args[0].must.equal(socket)
     })
 
-    it("must trigger connection", function() {
+    it("must emit connection on Mitm", function() {
       var onConnection = Sinon.spy()
       this.mitm.on("connection", onConnection)
       var socket = connect({host: "foo"})
@@ -183,21 +183,21 @@ describe("Mitm", function() {
         Http.request({host: "foo"}).must.be.an.instanceof(ClientRequest)
       })
 
-      it("must trigger connect", function() {
+      it("must emit connect on Mitm", function() {
         var onConnect = Sinon.spy()
         this.mitm.on("connect", onConnect)
         Http.request({host: "foo"})
         onConnect.callCount.must.equal(1)
       })
 
-      it("must trigger connection", function() {
+      it("must emit connection on Mitm", function() {
         var onConnection = Sinon.spy()
         this.mitm.on("connection", onConnection)
         Http.request({host: "foo"})
         onConnection.callCount.must.equal(1)
       })
 
-      it("must trigger request", function(done) {
+      it("must emit request on Mitm", function(done) {
         var client = Http.request({host: "foo"})
         client.end()
 

@@ -26,8 +26,7 @@
 	"scripts": {"test": "make test"},
 
 	"dependencies": {
-		"underscore": ">= 1.1.5 < 1.6",
-		"concert": ">= 1.0.0 < 2"
+		"underscore": ">= 1.1.5 < 1.6"
 	},
 
 	"devDependencies": {

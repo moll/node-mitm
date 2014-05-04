@@ -6,7 +6,7 @@ var Https = require("https")
 var ClientRequest = Http.ClientRequest
 var ServerResponse = Http.ServerResponse
 var Socket = Net.Socket
-var Concert = require("concert")
+var EventEmitter = require("events").EventEmitter
 var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
 var slice = Array.prototype.slice
@@ -24,8 +24,11 @@ function Mitm() {
   return this
 }
 
-_.extend(Mitm.prototype, Concert)
-Mitm.prototype.emit = Mitm.prototype.trigger
+Mitm.prototype.on = EventEmitter.prototype.on
+Mitm.prototype.once = EventEmitter.prototype.once
+Mitm.prototype.off = EventEmitter.prototype.off
+Mitm.prototype.removeListener = EventEmitter.prototype.removeListener
+Mitm.prototype.emit = EventEmitter.prototype.emit
 
 var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
@@ -73,13 +76,13 @@ function connect(opts, done) {
   // Socket.prototype.connect.
   if (done) client.once("connect", done)
 
-  // Trigger connect in the next tick, otherwise it would be impossible to
+  // Emit connect in the next tick, otherwise it would be impossible to
   // listen to it after calling Net.connect.
   process.nextTick(client.emit.bind(client, "connect"))
   process.nextTick(server.emit.bind(server, "connect"))
 
-  this.trigger("connect", client)
-  this.trigger("connection", server)
+  this.emit("connect", client)
+  this.emit("connection", server)
 
   return client
 }

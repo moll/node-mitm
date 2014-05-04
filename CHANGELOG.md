@@ -18,6 +18,12 @@
   mitm.on("request", function(req) { req.headers.host.must.equal("x.org") })
   ```
 
+- Replaces [Concert.js][concert] with Node's EventEmitter for now as I was not
+  sure the extra features were required.  
+  Remember kids, _if in doubt, leave it out_.
+
+[concert]: https://github.com/moll/js-concert
+
 ## 0.3.0 (Apr 26, 2014)
 - Adds support for calling `Net.connect` with `port` and `host` arguments.
 
