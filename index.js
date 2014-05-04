@@ -9,7 +9,6 @@ var Socket = Net.Socket
 var EventEmitter = require("events").EventEmitter
 var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
-var slice = Array.prototype.slice
 var normalizeConnectArgs = Net._normalizeConnectArgs
 var createRequestAndResponse = Http._connectionListener
 module.exports = Mitm
