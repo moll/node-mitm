@@ -213,7 +213,7 @@ If you find Mitm.js needs improving, please don't hesitate to type to me now
 at [andri@dot.ee][email] or [create an issue online][issues].
 
 [email]: mailto:andri@dot.ee
-[issues]: https://github.com/moll/js-mitm/issues
+[issues]: https://github.com/moll/node-mitm/issues
 [moll]: http://themoll.com
 [monday]: https://mondayapp.com
 [twitter]: https://twitter.com/theml
