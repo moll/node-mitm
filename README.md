@@ -4,19 +4,30 @@ Mitm.js
 [npm-badge]: https://badge.fury.io/js/mitm.png
 
 Mitm.js is a library for Node.js to **intercept and mock** network **TCP** and
-**HTTP** connections.  Mitm.js intercepts **all remote connections** and gives
-you an instance of `Net.Socket` to communicate as the remote server. For **HTTP
-requests** it even gives you instances of `Http.IncomingMessage` and
-`Http.ServerResponse` — just like you're used to when writing Node.js servers.
-Except there's no actual server running, it's all just _In-Process
-Interception™_.
+**HTTP** connections.  Mitm.js intercepts and gives you a `Net.Socket` to
+communicate as if you were the remote server. For **HTTP requests** it even
+gives you `Http.IncomingMessage` and `Http.ServerResponse` — just like you're
+used to when writing Node.js servers.  Except there's no actual server running,
+it's all just _In-Process Interception™_.
+
+Intercepting connections and requests is **extremely useful to test and ensure
+your code does what you expect**. Assert on request parameters and send back
+various responses to your code without ever having to hit the real network.
+**Fast as hell** and **a lot easier to develop with than external test
+servers**.
 
 Mitm.js should work both on the stable Node **v0.10.24** and up and **v0.11.11**
 and up and has **automated tests** to ensure it will stay that way.
 
+**Note**: This is a fairly early release of Mitm.js, so it might not cover all
+use cases you may come across. I've developed this on a need-to basis for
+testing [Monday Calendar][monday]'s syncing, so if you find a use-case I haven't
+come across, please fling me an [email][email], a [tweet][twitter] or [create an
+issue][issues] on GitHub.
+
 ### Tour
 - Intercept both **TCP socket connections** (`Net.connect`) and **HTTP
-  requests** (`Http.request` and `Https.request`).
+  requests** (`Http.request` and `Https.request`).  
 
 - Hooks to Node.js's network functions at a **very low level** with the goal of
   not having to patch existing classes and have everything behave as if bytes
@@ -78,12 +89,6 @@ and up and has **automated tests** to ensure it will stay that way.
   towards other developers? But in a world where so many libraries and
   "production" software are released without *any* tests, I like to point out
   that I even write tests for testing libraries. ;-)
-
-**Note**: This is a fairly early release of Mitm.js, so it might not cover all
-use cases you may come across. I've developed this on a need-to basis for
-testing [Monday Calendar][monday]'s syncing, so if you find a use-case I haven't
-come across, please fling me an [email][email], a [tweet][twitter] or [create an
-issue][issues] on GitHub.
 
 [must]: https://github.com/moll/js-must
 [express]: http://expressjs.com
