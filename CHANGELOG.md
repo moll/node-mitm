@@ -1,3 +1,6 @@
+## Unreleased
+- Adds [Travis CI](https://travis-ci.org) badge to the README.
+
 ## 0.4.0 (May 4, 2014)
 - Adds support for Node v0.10.24 and up.
 - Adds the `connection` event to Mitm to get the remote `Net.Socket`. You can
@@ -18,11 +21,9 @@
   mitm.on("request", function(req) { req.headers.host.must.equal("x.org") })
   ```
 
-- Replaces [Concert.js][concert] with Node's EventEmitter for now as I was not
-  sure the extra features were required.  
+- Replaces [Concert.js](https://github.com/moll/js-concert) with Node's
+  EventEmitter for now as I was not sure the extra features were required.  
   Remember kids, _if in doubt, leave it out_.
-
-[concert]: https://github.com/moll/js-concert
 
 ## 0.3.0 (Apr 26, 2014)
 - Adds support for calling `Net.connect` with `port` and `host` arguments.

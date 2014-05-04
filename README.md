@@ -1,7 +1,9 @@
 Mitm.js
 =======
 [![NPM version][npm-badge]](http://badge.fury.io/js/mitm)
+[![Build status][travis-badge]](https://travis-ci.org/moll/node-mitm)
 [npm-badge]: https://badge.fury.io/js/mitm.png
+[travis-badge]: https://travis-ci.org/moll/node-mitm.png?branch=master
 
 Mitm.js is a library for Node.js to **intercept and mock** network **TCP** and
 **HTTP** connections.  Mitm.js intercepts and gives you a `Net.Socket` to
