@@ -2,6 +2,8 @@ var Sinon = require("sinon")
 var Net = require("net")
 var Http = require("http")
 var Https = require("https")
+var Tls = require("tls")
+var IncomingMessage = Http.IncomingMessage
 var ServerResponse = Http.ServerResponse
 var ClientRequest = Http.ClientRequest
 var Mitm = require("..")
@@ -151,11 +153,24 @@ describe("Mitm", function() {
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
+
+    it("must not set authorized property", function() {
+      Net.connect({host: "foo"}).must.not.have.property("authorized")
+    })
   })
 
   describe("Net.createConnection", function() {
     it("must be equal to Net.connect", function() {
       Net.createConnection.must.equal(Net.connect)
+    })
+  })
+
+  describe("Tls.connect", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    it("must set authorized property", function() {
+      Tls.connect({host: "foo"}).authorized.must.be.true()
     })
   })
 
@@ -182,12 +197,16 @@ describe("Mitm", function() {
         onConnection.callCount.must.equal(1)
       })
 
-      it("must trigger request", function() {
-        var onRequest = Sinon.spy()
-        this.mitm.on("request", onRequest)
-        var req = Http.request({host: "foo"})
-        onRequest.args[0][0].must.equal(req)
-        onRequest.args[0][1].must.be.an.instanceof(ServerResponse)
+      it("must trigger request", function(done) {
+        var client = Http.request({host: "foo"})
+        client.end()
+
+        this.mitm.on("request", function(req, res) {
+          req.must.be.an.instanceof(IncomingMessage)
+          req.must.not.equal(client)
+          res.must.be.an.instanceof(ServerResponse)
+          done()
+        })
       })
     })
   }
@@ -200,47 +219,44 @@ describe("Mitm", function() {
     mustRequest(function() { return Https.request.apply(this, arguments) })
   })
 
-  describe("ClientRequest", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
-
-    it("must have server property with ServerResponse", function() {
-      var req = Http.request({host: "foo"})
-      req.server.must.be.an.instanceof(ServerResponse)
-    })
-
-    describe(".prototype.setHeader", function() {
-      it("must set header", function() {
-        var req = Http.request({host: "foo"})
-        req.setHeader("Content-Type", "application/json")
-        req.end()
-        req.getHeader("Content-Type").must.equal("application/json")
-      })
-    })
-  })
-
   describe("IncomingMessage", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must set authorized property for HTTPS", function(done) {
-      var req = Https.request({host: "foo"})
-      req.server.end()
+    it("must have URL", function(done) {
+      Http.request({host: "foo", path: "/foo"}).end()
 
-      req.on("response", function(res) {
-        res.client.authorized.must.be.true()
+      this.mitm.on("request", function(req) {
+        req.url.must.equal("/foo")
         done()
       })
     })
 
-    it("must not set authorized property for HTTP", function(done) {
+    it("must have headers", function(done) {
       var req = Http.request({host: "foo"})
-      req.server.end()
+      req.setHeader("Content-Type", "application/json")
+      req.end()
 
-      req.on("response", function(res) {
-        res.client.must.not.have.property("authorized")
+      this.mitm.on("request", function(req) {
+        req.headers["content-type"].must.equal("application/json")
         done()
       })
+    })
+
+    it("must have body", function(done) {
+      var client = Http.request({host: "foo", method: "POST"})
+      client.write("Hello")
+
+      this.mitm.on("request", function(req, res) {
+        req.setEncoding("utf8")
+        req.on("data", function(data) { data.must.equal("Hello"); done() })
+      })
+    })
+
+    it("must have a reference to the ServerResponse", function(done) {
+      Http.request({host: "foo", method: "POST"}).end()
+      this.mitm.on("request", function(req, res) { req.res.must.equal(res) })
+      this.mitm.on("request", done.bind(null, null))
     })
   })
 
@@ -260,41 +276,48 @@ describe("Mitm", function() {
         res.headers["content-type"].must.equal("application/json")
         res.setEncoding("utf8")
         res.once("data", function(data) { data.must.equal("Hi!"); done() })
-      })
+      }).end()
+    })
+
+    it("must have a reference to the IncomingMessage", function(done) {
+      Http.request({host: "foo", method: "POST"}).end()
+      this.mitm.on("request", function(req, res) { res.req.must.equal(req) })
+      this.mitm.on("request", done.bind(null, null))
     })
 
     describe(".prototype.write", function() {
       it("must make clientRequest emit response", function(done) {
         var req = Http.request({host: "foo"})
-        var response = Sinon.spy()
-        req.server.write("Test")
-        req.on("response", function() { done() })
+        req.end()
+        this.mitm.on("request", function(req, res) { res.write("Test") })
+        req.on("response", done.bind(null, null))
       })
 
       // Under Node v0.10 it's the writeQueueSize that's checked to see if
       // the callback can be called.
       it("must call given callback", function(done) {
-        var req = Http.request({host: "foo"})
-        var response = Sinon.spy()
-        req.server.write("Test", done)
+        Http.request({host: "foo"}).end()
+        this.mitm.on("request", function(req, res) { res.write("Test", done) })
       })
     })
 
     describe(".prototype.end", function() {
-      it("must make clientRequest emit response", function(done) {
-        var req = Http.request({host: "foo"})
-        req.server.end()
-        req.on("response", done.bind(null, null))
+      it("must make ClientRequest emit response", function(done) {
+        var client = Http.request({host: "foo"})
+        client.end()
+        this.mitm.on("request", function(req, res) { res.end() })
+        client.on("response", done.bind(null, null))
       })
 
       // In an app of mine Node v0.11.7 did not emit the end event, but
       // v0.11.11 did. I'll investigate properly if this becomes a problem in
       // later Node versions.
-      it("must make incomingMessage emit end", function(done) {
-        var req = Http.request({host: "foo"})
-        req.server.end()
+      it("must make IncomingMessage emit end", function(done) {
+        var client = Http.request({host: "foo"})
+        client.end()
+        this.mitm.on("request", function(req, res) { res.end() })
 
-        req.on("response", function(res) {
+        client.on("response", function(res) {
           res.on("data", function() {})
           res.on("end", done)
         })

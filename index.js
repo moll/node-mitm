@@ -11,6 +11,7 @@ var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
 var slice = Array.prototype.slice
 var normalizeConnectArgs = Net._normalizeConnectArgs
+var createRequestAndResponse = Http._connectionListener
 module.exports = Mitm
 
 function Mitm() {
@@ -18,10 +19,13 @@ function Mitm() {
     return Mitm.apply(Object.create(Mitm.prototype), arguments).enable()
 
   this.stubs = new Stubs
+  this.on("request", addResponse)
+
   return this
 }
 
 _.extend(Mitm.prototype, Concert)
+Mitm.prototype.emit = Mitm.prototype.trigger
 
 var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
@@ -49,8 +53,7 @@ Mitm.prototype.enable = function() {
   // ClientRequest.prototype.onSocket is called synchronously from
   // ClientRequest's consturctor and is a convenient place to hook into new
   // ClientRequests.
-  var onSocket = decontextify(onRequest.bind(this))
-  onSocket = _.compose(ClientRequest.prototype.onSocket, onSocket)
+  var onSocket = _.compose(ClientRequest.prototype.onSocket, request.bind(this))
   this.stubs.stub(ClientRequest.prototype, "onSocket", onSocket)
 
   return this
@@ -62,9 +65,9 @@ Mitm.prototype.disable = function() {
 
 function connect(opts, done) {
   var args = normalizeConnectArgs(arguments), opts = args[0], done = args[1]
-  var internalSocket = InternalSocket.pair()
-  var client = new Socket(_.defaults({handle: internalSocket}, opts))
-  var server = client.server = new Socket({handle: internalSocket.remote})
+  var sockets = InternalSocket.pair()
+  var client = new Socket(_.defaults({handle: sockets[0]}, opts))
+  var server = client.server = new Socket({handle: sockets[1]})
 
   // The callback is originally bound to the connect event in
   // Socket.prototype.connect.
@@ -85,21 +88,19 @@ function authorize(socket) {
   return socket.authorized = true, socket
 }
 
-function onRequest(req, socket) {
-  // AssignSocket is called synchronously from Net.Server's new connection
-  // handler in http.js.
-  var res = req.server = new ServerResponse(req)
+function request(socket) {
+  var self = this
 
-  // NOTE: Node v0.10 expects the server socket to be set after the client
-  // socket is set. Node v0.11 works both ways.
-  req.on("socket", res.assignSocket.bind(res, socket.server))
-
-  return this.trigger("request", req, res), socket
-}
-
-function decontextify(fn, self) {
-  return function() {
-    Array.prototype.unshift.call(arguments, this)
-    return fn.apply(self, arguments)
+  // Node >= v0.10.24 < v0.11 will crash with: «Assertion failed:
+  // (!current_buffer), function Execute, file ../src/node_http_parser.cc, line
+  // 387.» if ServerResponse.prototype.write is called from within the
+  // "request" event handler. Call it in the next tick to work around that.
+  if (NODE_0_10) {
+    self = Object.create(this)
+    self.emit = _.compose(process.nextTick, Function.bind.bind(this.emit, this))
   }
+
+  return createRequestAndResponse.call(self, socket.server), socket
 }
+
+function addResponse(req, res) { req.res = res; res.req = req }
