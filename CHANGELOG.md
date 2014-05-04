@@ -1,4 +1,4 @@
-## Unreleased
+## 0.4.0 (May 4, 2014)
 - Adds support for Node v0.10.24 and up.
 - Adds the `connection` event to Mitm to get the remote `Net.Socket`. You can
   use this to intercept and test any TCP code.  

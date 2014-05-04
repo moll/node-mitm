@@ -1,6 +1,5 @@
 {
 	"name": "mitm",
-	"version": "0.3.0",
 	"version": "0.4.0",
 	"description": "Intercept and mock network TCP connections and HTTP requests. Intercepts and gives you vanilla Net.Socket, Http.IncomingMessage and Http.ServerResponse to assert on and respond with. Small, fast and simple. Super useful when testing code that hits remote servers.",
 	"keywords": [
