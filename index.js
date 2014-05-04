@@ -5,9 +5,9 @@ var Http = require("http")
 var Https = require("https")
 var ClientRequest = Http.ClientRequest
 var ServerResponse = Http.ServerResponse
+var Socket = Net.Socket
 var Concert = require("concert")
-var StreamWrap = require("./lib/stream_wrap")
-var PipeStreamWrap = require("./lib/pipe_stream_wrap")
+var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
 var slice = Array.prototype.slice
 var normalizeConnectArgs = Net._normalizeConnectArgs
@@ -46,52 +46,55 @@ Mitm.prototype.enable = function() {
   // Fake a regular, non-SSL socket for now as TLSSocket requires more mocking.
   this.stubs.stub(Tls, "connect", _.compose(authorize, netConnect))
 
-  // ClientRequest.prototype.onSocket is called synchronously.
+  // ClientRequest.prototype.onSocket is called synchronously from
+  // ClientRequest's consturctor and is a convenient place to hook into new
+  // ClientRequests.
   var onSocket = decontextify(onRequest.bind(this))
-  onSocket = _.compose(onSocket, ClientRequest.prototype.onSocket)
+  onSocket = _.compose(ClientRequest.prototype.onSocket, onSocket)
   this.stubs.stub(ClientRequest.prototype, "onSocket", onSocket)
 
   return this
-}
-
-function connect(opts, done) {
-  var args = normalizeConnectArgs(arguments), opts = args[0], done = args[1]
-  var socket = new Net.Socket(_.defaults({handle: new StreamWrap}, opts))
-
-  // The callback is originally bound to the connect event in
-  // Socket.prototype.connect.
-  if (done) socket.once("connect", done)
-
-  // Trigger connect in the next tick, otherwise it would be impossible to
-  // listen to it after calling Net.connect.
-  process.nextTick(socket.emit.bind(socket, "connect"))
-
-  return this.trigger("connect", socket), socket
-}
-
-function authorize(socket) {
-  return socket.authorized = true, socket
-}
-
-function onRequest(req) {
-  var res = req.server = new ServerResponse(req)
-
-  // Request's socket event will be emitted after the socket is created in
-  // Agent.prototype.createConnection and then passed over to
-  // ClientRequest.prototype.onSocket for processing on the next tick.
-  req.once("socket", assignSocket.bind(null, req, res))
-
-  this.trigger("request", req, res)
 }
 
 Mitm.prototype.disable = function() {
   return this.stubs.restore(), this
 }
 
-function assignSocket(req, res) {
-  var socket = new Net.Socket({handle: new PipeStreamWrap(req.socket._handle)})
-  socket.emit("connect")
-  res.assignSocket(socket)
+function connect(opts, done) {
+  var args = normalizeConnectArgs(arguments), opts = args[0], done = args[1]
+  var internalSocket = InternalSocket.pair()
+  var client = new Socket(_.defaults({handle: internalSocket}, opts))
+  var server = client.server = new Socket({handle: internalSocket.remote})
+
+  // The callback is originally bound to the connect event in
+  // Socket.prototype.connect.
+  if (done) client.once("connect", done)
+
+  // Trigger connect in the next tick, otherwise it would be impossible to
+  // listen to it after calling Net.connect.
+  process.nextTick(client.emit.bind(client, "connect"))
+  process.nextTick(server.emit.bind(server, "connect"))
+
+  this.trigger("connect", client)
+  this.trigger("connection", server)
+
+  return client
+}
+
+function authorize(socket) {
+  return socket.authorized = true, socket
+}
+
+function onRequest(req, socket) {
+  // AssignSocket is called synchronously from Net.Server's new connection
+  // handler in http.js.
+  var res = req.server = new ServerResponse(req)
+
+  // NOTE: Node v0.10 expects the server socket to be set after the client
+  // socket is set. Node v0.11 works both ways.
+  req.on("socket", res.assignSocket.bind(res, socket.server))
+
+  return this.trigger("request", req, res), socket
 }
 
 function decontextify(fn, self) {

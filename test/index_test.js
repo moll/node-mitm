@@ -15,52 +15,113 @@ describe("Mitm", function() {
     mitm.disable()
   })
 
-  describe("via Net.connect", function() {
+  describe("Socket", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
+    describe(".prototype.write", function() {
+      it("must write to client side from server side", function() {
+        var server = this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        server.write("Hello")
+        client.setEncoding("utf8")
+        client.read().must.equal("Hello")
+      })
+
+      it("must write to server side from client side", function() {
+        var server = this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        client.write("Hello")
+        server.setEncoding("utf8")
+        server.read().must.equal("Hello")
+      })
+
+      it("must write to server side from client side given a buffer",
+        function() {
+        var server = this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        client.write(new Buffer("Hello"))
+        server.setEncoding("utf8")
+        server.read().must.equal("Hello")
+      })
+
+      it("must write to server side from client side given a UTF-8 string",
+        function() {
+        var server = this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        client.write("Hello", "utf8")
+        server.setEncoding("utf8")
+        server.read().must.equal("Hello")
+      })
+
+      it("must write to server side from client side given a ASCII string",
+        function() {
+        var server = this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        client.write("Hello", "ascii")
+        server.setEncoding("utf8")
+        server.read().must.equal("Hello")
+      })
+
+      it("must write to server side from client side given a UCS-2 string",
+        function() {
+        var server = this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        client.write("Hello", "ucs2")
+        server.setEncoding("ucs2")
+        server.read().must.equal("H\u0000e\u0000l\u0000l\u0000o\u0000")
+      })
+    })
+
+    describe(".prototype.end", function() {
+      it("must emit end when closed on server side", function(done) {
+        var server = this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        server.end()
+        client.on("end", done)
+      })
+    })
+  })
+
+  describe("Net.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
     beforeEach(function() { this.sinon = Sinon.sandbox.create() })
     afterEach(function() { this.sinon.restore() })
 
-    it("must return socket", function() {
-      this.sinon.spy(Net, "Socket")
-      var socket = Net.connect({host: "foo", port: 80})
+    function connect() { return Net.connect.apply(this, arguments) }
 
-      socket.must.be.an.instanceof(Net.Socket)
-      Net.Socket.callCount.must.equal(1)
-      Net.Socket.args[0][0].host.must.equal("foo")
-      Net.Socket.args[0][0].port.must.equal(80)
+    it("must return an instance of Socket", function() {
+      connect({host: "foo", port: 80}).must.be.an.instanceof(Net.Socket)
     })
 
-    it("must return socket given port", function() {
-      this.sinon.spy(Net, "Socket")
-      var socket = Net.connect(80)
-
-      socket.must.be.an.instanceof(Net.Socket)
-      Net.Socket.callCount.must.equal(1)
-      Net.Socket.args[0][0].port.must.equal(80)
-      Net.Socket.args[0][0].must.not.have.property("host")
+    it("must return an instance of Socket given port", function() {
+      connect(80).must.be.an.instanceof(Net.Socket)
     })
 
-    it("must return socket given port and host", function() {
-      this.sinon.spy(Net, "Socket")
-      var socket = Net.connect(80, "10.0.0.1")
-
-      socket.must.be.an.instanceof(Net.Socket)
-      Net.Socket.callCount.must.equal(1)
-      Net.Socket.args[0][0].port.must.equal(80)
-      Net.Socket.args[0][0].host.must.equal("10.0.0.1")
+    it("must return an instance of Socket given port and host", function() {
+      connect(80, "10.0.0.1").must.be.an.instanceof(Net.Socket)
     })
 
     it("must trigger connect", function() {
-      var onSocket = Sinon.spy()
-      this.mitm.on("connect", onSocket)
-      var socket = Net.connect({host: "foo"})
-      onSocket.callCount.must.equal(1)
-      onSocket.firstCall.args[0].must.equal(socket)
+      var onConnect = Sinon.spy()
+      this.mitm.on("connect", onConnect)
+      var socket = connect({host: "foo"})
+      onConnect.callCount.must.equal(1)
+      onConnect.firstCall.args[0].must.equal(socket)
     })
 
-    it("must trigger connect on socket in next tick", function(done) {
-      var socket = Net.connect({host: "foo"})
+    it("must trigger connection", function() {
+      var onConnection = Sinon.spy()
+      this.mitm.on("connection", onConnection)
+      var socket = connect({host: "foo"})
+      onConnection.callCount.must.equal(1)
+      onConnection.firstCall.args[0].must.be.an.instanceof(Net.Socket)
+      onConnection.firstCall.args[0].must.not.equal(socket)
+    })
+
+    it("must emit connect on socket in next tick", function(done) {
+      var socket = connect({host: "foo"})
       var onConnect = Sinon.spy()
       socket.on("connect", onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
@@ -69,14 +130,14 @@ describe("Mitm", function() {
 
     it("must call on connect given callback", function(done) {
       var onConnect = Sinon.spy()
-      var socket = Net.connect({host: "foo"}, onConnect)
+      var socket = connect({host: "foo"}, onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
 
     it("must call on connect given port and callback", function(done) {
       var onConnect = Sinon.spy()
-      var socket = Net.connect(80, onConnect)
+      var socket = connect(80, onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
@@ -86,117 +147,79 @@ describe("Mitm", function() {
     // object.
     it("must call on connect given port, host and callback", function(done) {
       var onConnect = Sinon.spy()
-      var socket = Net.connect(80, "localhost", onConnect)
+      var socket = connect(80, "localhost", onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
   })
 
-  describe("via Net.createConnection", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
-
-    it("must trigger connect", function() {
-      var onSocket = Sinon.spy()
-      this.mitm.on("connect", onSocket)
-      var socket = Net.createConnection({host: "foo"})
-      onSocket.callCount.must.equal(1)
-      onSocket.firstCall.args[0].must.equal(socket)
+  describe("Net.createConnection", function() {
+    it("must be equal to Net.connect", function() {
+      Net.createConnection.must.equal(Net.connect)
     })
   })
 
+  function mustRequest(request) {
+    describe("as a requester", function() {
+      beforeEach(function() { this.mitm = Mitm() })
+      afterEach(function() { this.mitm.disable() })
+
+      it("must return ClientRequest", function() {
+        Http.request({host: "foo"}).must.be.an.instanceof(ClientRequest)
+      })
+
+      it("must trigger connect", function() {
+        var onConnect = Sinon.spy()
+        this.mitm.on("connect", onConnect)
+        Http.request({host: "foo"})
+        onConnect.callCount.must.equal(1)
+      })
+
+      it("must trigger connection", function() {
+        var onConnection = Sinon.spy()
+        this.mitm.on("connection", onConnection)
+        Http.request({host: "foo"})
+        onConnection.callCount.must.equal(1)
+      })
+
+      it("must trigger request", function() {
+        var onRequest = Sinon.spy()
+        this.mitm.on("request", onRequest)
+        var req = Http.request({host: "foo"})
+        onRequest.args[0][0].must.equal(req)
+        onRequest.args[0][1].must.be.an.instanceof(ServerResponse)
+      })
+    })
+  }
+
   describe("via Http.request", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
-
-    it("must return ClientRequest", function() {
-      Http.request({host: "foo"}).must.be.an.instanceof(ClientRequest)
-    })
-
-    it("must trigger connect", function() {
-      var onSocket = Sinon.spy()
-      this.mitm.on("connect", onSocket)
-      Http.request({host: "foo"})
-      onSocket.callCount.must.equal(1)
-    })
-
-    it("must trigger request", function() {
-      var onRequest = Sinon.spy()
-      this.mitm.on("request", onRequest)
-      var req = Http.request({host: "foo"})
-      onRequest.args[0][0].must.equal(req)
-      onRequest.args[0][1].must.be.an.instanceof(ServerResponse)
-    })
+    mustRequest(function() { return Http.request.apply(this, arguments) })
   })
 
   describe("via Https.request", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
-
-    it("must return ClientRequest", function() {
-      Https.request({host: "foo"}).must.be.an.instanceof(ClientRequest)
-    })
-
-    it("must trigger connect", function() {
-      var onSocket = Sinon.spy()
-      this.mitm.on("connect", onSocket)
-      Https.request({host: "foo"})
-      onSocket.callCount.must.equal(1)
-    })
-
-    it("must trigger request", function() {
-      var onRequest = Sinon.spy()
-      this.mitm.on("request", onRequest)
-      var req = Https.request({host: "foo"})
-      onRequest.args[0][0].must.equal(req)
-      onRequest.args[0][1].must.be.an.instanceof(ServerResponse)
-    })
+    mustRequest(function() { return Https.request.apply(this, arguments) })
   })
 
-  describe("clientRequest", function() {
+  describe("ClientRequest", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
-
-    it("must allow setting headers", function() {
-      var req = Http.request({host: "foo"})
-      req.setHeader("Content-Type", "application/json")
-      req.end()
-      req.getHeader("Content-Type").must.equal("application/json")
-    })
-
-    // Without process.nextTick writes won't throw an error if
-    // the handle object lacks the necessary write functions.
-    it("must allow writing with a buffer", function(done) {
-      var req = Http.request({host: "foo"})
-      req.write(new Buffer("Hello"))
-      process.nextTick(done)
-    })
-
-    it("must allow writing with a UTF-8 string", function(done) {
-      var req = Http.request({host: "foo"})
-      req.write("Hello")
-      process.nextTick(done)
-    })
-
-    it("must allow writing with an ASCII string", function(done) {
-      var req = Http.request({host: "foo"})
-      req.write("Hello", "ascii")
-      process.nextTick(done)
-    })
-
-    it("must allow writing with an UCS-2 string", function(done) {
-      var req = Http.request({host: "foo"})
-      req.write("Hello", "ucs2")
-      process.nextTick(done)
-    })
 
     it("must have server property with ServerResponse", function() {
       var req = Http.request({host: "foo"})
       req.server.must.be.an.instanceof(ServerResponse)
     })
+
+    describe(".prototype.setHeader", function() {
+      it("must set header", function() {
+        var req = Http.request({host: "foo"})
+        req.setHeader("Content-Type", "application/json")
+        req.end()
+        req.getHeader("Content-Type").must.equal("application/json")
+      })
+    })
   })
 
-  describe("incomingMessage", function() {
+  describe("IncomingMessage", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
@@ -221,7 +244,7 @@ describe("Mitm", function() {
     })
   })
 
-  describe("serverResponse", function() {
+  describe("ServerResponse", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
@@ -240,7 +263,7 @@ describe("Mitm", function() {
       })
     })
 
-    describe(".write", function() {
+    describe(".prototype.write", function() {
       it("must make clientRequest emit response", function(done) {
         var req = Http.request({host: "foo"})
         var response = Sinon.spy()
@@ -257,7 +280,7 @@ describe("Mitm", function() {
       })
     })
 
-    describe(".end", function() {
+    describe(".prototype.end", function() {
       it("must make clientRequest emit response", function(done) {
         var req = Http.request({host: "foo"})
         req.server.end()
