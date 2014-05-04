@@ -1,4 +1,4 @@
-## Unreleased
+## 0.4.1 (May 4, 2014)
 - Adds [Travis CI](https://travis-ci.org) badge to the README.
 
 ## 0.4.0 (May 4, 2014)
