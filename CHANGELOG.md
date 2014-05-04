@@ -5,8 +5,8 @@
   If you need the client side socket for any reason, listen to `connect` on
   Mitm.
 
-- Replaces the `ClientRequest` given to the `request` event on Mitm
-  with a proper `IncomingMessage` — just like a regular Node server would
+- Replaces the `Http.ClientRequest` given to the `request` event on Mitm with
+  a proper `Http.IncomingMessage` — just like a regular Node server would
   receive.  
   This ensures the requests you make are properly parseable according to HTTP
   specs (assuming Node.js itself is implemented according to spec) and also lets
