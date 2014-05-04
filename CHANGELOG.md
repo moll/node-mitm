@@ -1,3 +1,6 @@
+## Unreleased
+- Adds support for Node v0.10.24.
+
 ## 0.3.0 (Apr 26, 2014)
 - Adds support for calling `Net.connect` with `port` and `host` arguments.
 

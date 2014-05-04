@@ -2,6 +2,7 @@ var _ = require("underscore")
 var Net = require("net")
 var Tls = require("tls")
 var Http = require("http")
+var Https = require("https")
 var ClientRequest = Http.ClientRequest
 var ServerResponse = Http.ServerResponse
 var Concert = require("concert")
@@ -22,12 +23,25 @@ function Mitm() {
 
 _.extend(Mitm.prototype, Concert)
 
+var NODE_0_10 = !!process.version.match(/^v0\.10\./)
+
 Mitm.prototype.enable = function() {
   // Connect is called synchronously.
   var netConnect = connect.bind(this)
   this.stubs.stub(Net, "connect", netConnect)
   this.stubs.stub(Net, "createConnection", netConnect)
   this.stubs.stub(Http.Agent.prototype, "createConnection", netConnect)
+
+  if (NODE_0_10) {
+    // Node v0.10 sets createConnection on the object in the constructor.
+    this.stubs.stub(Http.globalAgent, "createConnection", netConnect)
+
+    // This will create a lot of sockets in tests, but that's the current price
+    // to pay until I find a better way to force a new socket for each
+    // connection.
+    this.stubs.stub(Http.globalAgent, "maxSockets", Infinity)
+    this.stubs.stub(Https.globalAgent, "maxSockets", Infinity)
+  }
 
   // Fake a regular, non-SSL socket for now as TLSSocket requires more mocking.
   this.stubs.stub(Tls, "connect", _.compose(authorize, netConnect))

@@ -157,7 +157,7 @@ describe("Mitm", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must allow setting headers", function*() {
+    it("must allow setting headers", function() {
       var req = Http.request({host: "foo"})
       req.setHeader("Content-Type", "application/json")
       req.end()
@@ -166,28 +166,28 @@ describe("Mitm", function() {
 
     // Without process.nextTick writes won't throw an error if
     // the handle object lacks the necessary write functions.
-    it("must allow writing with a buffer", function*() {
+    it("must allow writing with a buffer", function(done) {
       var req = Http.request({host: "foo"})
       req.write(new Buffer("Hello"))
-      yield process.nextTick
+      process.nextTick(done)
     })
 
-    it("must allow writing with a UTF-8 string", function*() {
+    it("must allow writing with a UTF-8 string", function(done) {
       var req = Http.request({host: "foo"})
       req.write("Hello")
-      yield process.nextTick
+      process.nextTick(done)
     })
 
-    it("must allow writing with an ASCII string", function*() {
+    it("must allow writing with an ASCII string", function(done) {
       var req = Http.request({host: "foo"})
       req.write("Hello", "ascii")
-      yield process.nextTick
+      process.nextTick(done)
     })
 
-    it("must allow writing with an UCS-2 string", function*() {
+    it("must allow writing with an UCS-2 string", function(done) {
       var req = Http.request({host: "foo"})
       req.write("Hello", "ucs2")
-      yield process.nextTick
+      process.nextTick(done)
     })
 
     it("must have server property with ServerResponse", function() {
@@ -200,22 +200,24 @@ describe("Mitm", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must set authorized property for HTTPS", function*() {
+    it("must set authorized property for HTTPS", function(done) {
       var req = Https.request({host: "foo"})
-      var res; req.on("response", function() { res = arguments[0] })
-      yield process.nextTick
-
       req.server.end()
-      res.client.authorized.must.be.true()
+
+      req.on("response", function(res) {
+        res.client.authorized.must.be.true()
+        done()
+      })
     })
 
-    it("must not set authorized property for HTTP", function*() {
+    it("must not set authorized property for HTTP", function(done) {
       var req = Http.request({host: "foo"})
-      var res; req.on("response", function() { res = arguments[0] })
-      yield process.nextTick
-
       req.server.end()
-      res.client.must.not.have.property("authorized")
+
+      req.on("response", function(res) {
+        res.client.must.not.have.property("authorized")
+        done()
+      })
     })
   })
 
@@ -223,63 +225,56 @@ describe("Mitm", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must respond with status, headers and body", function*() {
-      var req = Http.request({host: "foo"})
-      var res; req.on("response", function() { res = arguments[0] })
-      yield process.nextTick
+    it("must respond with status, headers and body", function(done) {
+      this.mitm.on("request", function(req, res) {
+        res.statusCode = 442
+        res.setHeader("Content-Type", "application/json")
+        res.end("Hi!")
+      })
 
-      req.server.statusCode = 442
-      req.server.setHeader("Content-Type", "application/json")
-      req.server.end("Hi!")
-
-      res.statusCode.must.equal(442)
-      res.headers["content-type"].must.equal("application/json")
-      res.setEncoding("utf8")
-      res.read().must.equal("Hi!")
+      Http.request({host: "foo"}).on("response", function(res) {
+        res.statusCode.must.equal(442)
+        res.headers["content-type"].must.equal("application/json")
+        res.setEncoding("utf8")
+        res.once("data", function(data) { data.must.equal("Hi!"); done() })
+      })
     })
 
     describe(".write", function() {
-      it("must make clientRequest emit response", function*() {
+      it("must make clientRequest emit response", function(done) {
         var req = Http.request({host: "foo"})
         var response = Sinon.spy()
-        req.on("response", response)
-        yield process.nextTick
-
-        response.callCount.must.equal(0)
         req.server.write("Test")
-        response.callCount.must.equal(1)
+        req.on("response", function() { done() })
+      })
+
+      // Under Node v0.10 it's the writeQueueSize that's checked to see if
+      // the callback can be called.
+      it("must call given callback", function(done) {
+        var req = Http.request({host: "foo"})
+        var response = Sinon.spy()
+        req.server.write("Test", done)
       })
     })
 
     describe(".end", function() {
-      it("must make clientRequest emit response", function*() {
+      it("must make clientRequest emit response", function(done) {
         var req = Http.request({host: "foo"})
-        var response = Sinon.spy()
-        req.on("response", response)
-        yield process.nextTick
-
-        response.callCount.must.equal(0)
         req.server.end()
-        response.callCount.must.equal(1)
+        req.on("response", done.bind(null, null))
       })
 
       // In an app of mine Node v0.11.7 did not emit the end event, but
       // v0.11.11 did. I'll investigate properly if this becomes a problem in
       // later Node versions.
-      it("must make incomingMessage emit end", function*() {
+      it("must make incomingMessage emit end", function(done) {
         var req = Http.request({host: "foo"})
-        yield process.nextTick
+        req.server.end()
 
-        var end = Sinon.spy()
         req.on("response", function(res) {
           res.on("data", function() {})
-          res.on("end", end)
+          res.on("end", done)
         })
-
-        end.callCount.must.equal(0)
-        req.server.end()
-        yield process.nextTick
-        end.callCount.must.equal(1)
       })
     })
   })

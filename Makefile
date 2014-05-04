@@ -1,5 +1,5 @@
-override NODE_OPTS += --harmony-generators
-TEST_OPTS :=
+NODE_OPTS =
+TEST_OPTS =
 
 love:
 	@echo "Feel like makin' love."
