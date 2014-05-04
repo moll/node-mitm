@@ -161,8 +161,8 @@ mitm.on("request", function(req, res) {
 })
 
 Http.get("http://example.org", function(res) {
-  res.setEncoding("utf8")
   res.statusCode // => 402
+  res.setEncoding("utf8")
   res.on("data", console.log) // => "Pay up, sugar!"
 })
 ```
