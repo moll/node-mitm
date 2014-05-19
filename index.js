@@ -17,7 +17,7 @@ function Mitm() {
     return Mitm.apply(Object.create(Mitm.prototype), arguments).enable()
 
   this.stubs = new Stubs
-  this.on("request", addResponse)
+  this.on("request", addCrossReferences)
 
   return this
 }
@@ -104,4 +104,4 @@ function request(socket) {
   return createRequestAndResponse.call(self, socket.server), socket
 }
 
-function addResponse(req, res) { req.res = res; res.req = req }
+function addCrossReferences(req, res) { req.res = res; res.req = req }
