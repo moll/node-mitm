@@ -4,7 +4,6 @@ var Tls = require("tls")
 var Http = require("http")
 var Https = require("https")
 var ClientRequest = Http.ClientRequest
-var ServerResponse = Http.ServerResponse
 var Socket = Net.Socket
 var EventEmitter = require("events").EventEmitter
 var InternalSocket = require("./lib/internal_socket")
