@@ -181,25 +181,25 @@ describe("Mitm", function() {
       afterEach(function() { this.mitm.disable() })
 
       it("must return ClientRequest", function() {
-        Http.request({host: "foo"}).must.be.an.instanceof(ClientRequest)
+        request({host: "foo"}).must.be.an.instanceof(ClientRequest)
       })
 
       it("must emit connect on Mitm", function() {
         var onConnect = Sinon.spy()
         this.mitm.on("connect", onConnect)
-        Http.request({host: "foo"})
+        request({host: "foo"})
         onConnect.callCount.must.equal(1)
       })
 
       it("must emit connection on Mitm", function() {
         var onConnection = Sinon.spy()
         this.mitm.on("connection", onConnection)
-        Http.request({host: "foo"})
+        request({host: "foo"})
         onConnection.callCount.must.equal(1)
       })
 
       it("must emit request on Mitm", function(done) {
-        var client = Http.request({host: "foo"})
+        var client = request({host: "foo"})
         client.end()
 
         this.mitm.on("request", function(req, res) {
