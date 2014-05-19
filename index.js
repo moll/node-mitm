@@ -72,7 +72,7 @@ function connect(orig, opts, done) {
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
   client.bypass = bypass
 
-  this.emit("connect", client)
+  this.emit("connect", client, opts)
   if (client.bypassed) return orig.call(this, opts, done)
 
   // The callback is originally bound to the connect event in
@@ -80,7 +80,7 @@ function connect(orig, opts, done) {
   if (done) client.once("connect", done)
 
   var server = client.server = new Socket({handle: sockets[1]})
-  this.emit("connection", server)
+  this.emit("connection", server, opts)
 
   // Emit connect in the next tick, otherwise it would be impossible to
   // listen to it after calling Net.connect.

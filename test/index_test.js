@@ -117,18 +117,34 @@ describe("Mitm", function() {
     it("must emit connect on Mitm", function() {
       var onConnect = Sinon.spy()
       this.mitm.on("connect", onConnect)
-      var socket = connect({host: "foo"})
+      var opts = {host: "foo"}
+      var socket = connect(opts)
+
       onConnect.callCount.must.equal(1)
       onConnect.firstCall.args[0].must.equal(socket)
+      onConnect.firstCall.args[1].must.equal(opts)
+    })
+
+    it("must emit connect with options object given host and port", function() {
+      var onConnect = Sinon.spy()
+      this.mitm.on("connect", onConnect)
+      var socket = connect(25, "127.0.0.1")
+
+      onConnect.callCount.must.equal(1)
+      onConnect.firstCall.args[0].must.equal(socket)
+      onConnect.firstCall.args[1].must.eql({host: "127.0.0.1", port: 25})
     })
 
     it("must emit connection on Mitm", function() {
       var onConnection = Sinon.spy()
       this.mitm.on("connection", onConnection)
-      var socket = connect({host: "foo"})
+      var opts = {host: "foo"}
+      var socket = connect(opts)
+
       onConnection.callCount.must.equal(1)
       onConnection.firstCall.args[0].must.be.an.instanceof(Net.Socket)
       onConnection.firstCall.args[0].must.not.equal(socket)
+      onConnection.firstCall.args[1].must.equal(opts)
     })
 
     it("must emit connect on socket in next tick", function(done) {

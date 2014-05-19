@@ -1,13 +1,23 @@
 ## Unreleased
 - Adds bypass functionality to not intercept a particular outgoing connection
   and let it connect as usual.  
-  Access it through the `bypass` function on the socket object given to the
+  Let a connection happen by calling `bypass` on the socket object given to the
   `connect` event:
 
   ```javascript
   var mitm = Mitm()
-  mitm.on("connect", function(client) { client.bypass() })
-  Net.connect({host: "example.com", port: 25})
+  mitm.on("connect", function(socket) { socket.bypass() })
+  Net.connect({host: "example.org", port: 25})
+  ```
+
+- Emits `connect` and `connection` on Mitm with the _options_ object given to
+  `Net.connect`.  
+  You can use that with the above bypass functionality to bypass selectively:
+
+  ```javascript
+  mitm.on("connect", function(socket, opts) {
+    if (opts.host == "sql.example.org" && opts.port = 5432) socket.bypass()
+  })
   ```
 
 ## 0.4.1 (May 4, 2014)
