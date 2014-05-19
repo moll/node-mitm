@@ -23,7 +23,7 @@ describe("Mitm", function() {
 
     describe(".prototype.write", function() {
       it("must write to client side from server side", function() {
-        var server = this.mitm.on("connection", function(s) { server = s })
+        var server; this.mitm.on("connection", function(s) { server = s })
         var client = Net.connect({host: "foo"})
         server.write("Hello")
         client.setEncoding("utf8")
@@ -31,7 +31,7 @@ describe("Mitm", function() {
       })
 
       it("must write to server side from client side", function() {
-        var server = this.mitm.on("connection", function(s) { server = s })
+        var server; this.mitm.on("connection", function(s) { server = s })
         var client = Net.connect({host: "foo"})
         client.write("Hello")
         server.setEncoding("utf8")
@@ -40,7 +40,7 @@ describe("Mitm", function() {
 
       it("must write to server side from client side given a buffer",
         function() {
-        var server = this.mitm.on("connection", function(s) { server = s })
+        var server; this.mitm.on("connection", function(s) { server = s })
         var client = Net.connect({host: "foo"})
         client.write(new Buffer("Hello"))
         server.setEncoding("utf8")
@@ -49,7 +49,7 @@ describe("Mitm", function() {
 
       it("must write to server side from client side given a UTF-8 string",
         function() {
-        var server = this.mitm.on("connection", function(s) { server = s })
+        var server; this.mitm.on("connection", function(s) { server = s })
         var client = Net.connect({host: "foo"})
         client.write("Hello", "utf8")
         server.setEncoding("utf8")
@@ -58,7 +58,7 @@ describe("Mitm", function() {
 
       it("must write to server side from client side given a ASCII string",
         function() {
-        var server = this.mitm.on("connection", function(s) { server = s })
+        var server; this.mitm.on("connection", function(s) { server = s })
         var client = Net.connect({host: "foo"})
         client.write("Hello", "ascii")
         server.setEncoding("utf8")
@@ -67,7 +67,7 @@ describe("Mitm", function() {
 
       it("must write to server side from client side given a UCS-2 string",
         function() {
-        var server = this.mitm.on("connection", function(s) { server = s })
+        var server; this.mitm.on("connection", function(s) { server = s })
         var client = Net.connect({host: "foo"})
         client.write("Hello", "ucs2")
         server.setEncoding("ucs2")
@@ -77,7 +77,7 @@ describe("Mitm", function() {
 
     describe(".prototype.end", function() {
       it("must emit end when closed on server side", function(done) {
-        var server = this.mitm.on("connection", function(s) { server = s })
+        var server; this.mitm.on("connection", function(s) { server = s })
         var client = Net.connect({host: "foo"})
         server.end()
         client.on("end", done)
