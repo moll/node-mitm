@@ -32,7 +32,7 @@ var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
 Mitm.prototype.enable = function() {
   // Connect is called synchronously.
-  var netConnect = connect.bind(this)
+  var netConnect = connect.bind(this, Net.connect)
   this.stubs.stub(Net, "connect", netConnect)
   this.stubs.stub(Net, "createConnection", netConnect)
   this.stubs.stub(Http.Agent.prototype, "createConnection", netConnect)
@@ -64,23 +64,28 @@ Mitm.prototype.disable = function() {
   return this.stubs.restore(), this
 }
 
-function connect(opts, done) {
-  var args = normalizeConnectArgs(arguments); opts = args[0]; done = args[1]
+function connect(orig, opts, done) {
+  var args = normalizeConnectArgs(Array.prototype.slice.call(arguments, 1))
+  opts = args[0]; done = args[1]
+
   var sockets = InternalSocket.pair()
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
-  var server = client.server = new Socket({handle: sockets[1]})
+  client.bypass = bypass
+
+  this.emit("connect", client)
+  if (client.bypassed) return orig.call(this, opts, done)
 
   // The callback is originally bound to the connect event in
   // Socket.prototype.connect.
   if (done) client.once("connect", done)
 
+  var server = client.server = new Socket({handle: sockets[1]})
+  this.emit("connection", server)
+
   // Emit connect in the next tick, otherwise it would be impossible to
   // listen to it after calling Net.connect.
   process.nextTick(client.emit.bind(client, "connect"))
   process.nextTick(server.emit.bind(server, "connect"))
-
-  this.emit("connect", client)
-  this.emit("connection", server)
 
   return client
 }
@@ -89,13 +94,16 @@ function authorize(socket) {
   return socket.authorized = true, socket
 }
 
+function bypass() { this.bypassed = true }
+
 function request(socket) {
-  var self = this
+  if (!socket.server) return socket
 
   // Node >= v0.10.24 < v0.11 will crash with: «Assertion failed:
   // (!current_buffer), function Execute, file ../src/node_http_parser.cc, line
   // 387.» if ServerResponse.prototype.write is called from within the
   // "request" event handler. Call it in the next tick to work around that.
+  var self = this
   if (NODE_0_10) {
     self = Object.create(this)
     self.emit = _.compose(process.nextTick, Function.bind.bind(this.emit, this))

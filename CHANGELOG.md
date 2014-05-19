@@ -1,3 +1,15 @@
+## Unreleased
+- Adds bypass functionality to not intercept a particular outgoing connection
+  and let it connect as usual.  
+  Access it through the `bypass` function on the socket object given to the
+  `connect` event:
+
+  ```javascript
+  var mitm = Mitm()
+  mitm.on("connect", function(client) { client.bypass() })
+  Net.connect({host: "example.com", port: 25})
+  ```
+
 ## 0.4.1 (May 4, 2014)
 - Adds [Travis CI](https://travis-ci.org) badge to the README.
 

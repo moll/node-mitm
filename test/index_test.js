@@ -22,6 +22,14 @@ describe("Mitm", function() {
     beforeEach(function() { this.mitm = intercept() })
     afterEach(function() { this.mitm.disable() })
 
+    it("must intercept 127.0.0.1", function() {
+      var server; this.mitm.on("connection", function(s) { server = s })
+      var client = Net.connect({host: "127.0.0.1"})
+      server.write("Hello")
+      client.setEncoding("utf8")
+      client.read().must.equal("Hello")
+    })
+
     describe(".prototype.write", function() {
       it("must write to client side from server side", function() {
         var server; this.mitm.on("connection", function(s) { server = s })
@@ -131,14 +139,14 @@ describe("Mitm", function() {
       process.nextTick(done)
     })
 
-    it("must call on connect given callback", function(done) {
+    it("must call back on connect given callback", function(done) {
       var onConnect = Sinon.spy()
       connect({host: "foo"}, onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
 
-    it("must call on connect given port and callback", function(done) {
+    it("must call back on connect given port and callback", function(done) {
       var onConnect = Sinon.spy()
       connect(80, onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
@@ -148,7 +156,8 @@ describe("Mitm", function() {
     // This was a bug found on Apr 26, 2014 where the host argument was taken
     // to be the callback because arguments weren't normalized to an options
     // object.
-    it("must call on connect given port, host and callback", function(done) {
+    it("must call back on connect given port, host and callback",
+      function(done) {
       var onConnect = Sinon.spy()
       connect(80, "localhost", onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
@@ -157,6 +166,38 @@ describe("Mitm", function() {
 
     it("must not set authorized property", function() {
       Net.connect({host: "foo"}).must.not.have.property("authorized")
+    })
+
+    describe("when bypassed", function() {
+      it("must not intercept", function(done) {
+        this.mitm.on("connect", function(client) { client.bypass() })
+
+        Net.connect({host: "127.0.0.1", port: 25}).on("error", function(err) {
+          err.must.be.an.instanceof(Error)
+          err.message.must.include("ECONNREFUSED")
+          done()
+        })
+      })
+
+      it("must not call back twice on connect given callback", function(done) {
+        this.mitm.on("connect", function(client) { client.bypass() })
+
+        var onConnect = Sinon.spy()
+        var client = Net.connect({host: "127.0.0.1", port: 25}, onConnect)
+
+        client.on("error", process.nextTick.bind(null, function() {
+          onConnect.callCount.must.equal(0)
+          done()
+        }))
+      })
+
+      it("must not emit connection", function() {
+        this.mitm.on("connect", function(client) { client.bypass() })
+        var onConnection = Sinon.spy()
+        this.mitm.on("connection", onConnection)
+        Net.connect({host: "127.0.0.1", port: 25}).on("error", function() {})
+        onConnection.callCount.must.equal(0)
+      })
     })
   })
 
@@ -207,6 +248,27 @@ describe("Mitm", function() {
           req.must.not.equal(client)
           res.must.be.an.instanceof(ServerResponse)
           done()
+        })
+      })
+
+      describe("when bypassed", function() {
+        it("must not intercept", function(done) {
+          this.mitm.on("connect", function(client) { client.bypass() })
+          request({host: "127.0.0.1"}).on("error", function(err) {
+            err.must.be.an.instanceof(Error)
+            err.message.must.include("ECONNREFUSED")
+            done()
+          })
+        })
+
+        it("must not emit request", function(done) {
+          this.mitm.on("connect", function(client) { client.bypass() })
+          var onRequest = Sinon.spy()
+          this.mitm.on("request", onRequest)
+          request({host: "127.0.0.1"}).on("error", function(err) {
+            onRequest.callCount.must.equal(0)
+            done()
+          })
         })
       })
     })
