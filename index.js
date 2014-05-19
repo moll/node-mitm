@@ -65,7 +65,7 @@ Mitm.prototype.disable = function() {
 }
 
 function connect(opts, done) {
-  var args = normalizeConnectArgs(arguments), opts = args[0], done = args[1]
+  var args = normalizeConnectArgs(arguments); opts = args[0]; done = args[1]
   var sockets = InternalSocket.pair()
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
   var server = client.server = new Socket({handle: sockets[1]})
