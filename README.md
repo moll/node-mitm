@@ -5,12 +5,12 @@ Mitm.js
 [npm-badge]: https://badge.fury.io/js/mitm.png
 [travis-badge]: https://travis-ci.org/moll/node-mitm.png?branch=master
 
-Mitm.js is a library for Node.js to **intercept and mock** network **TCP** and
-**HTTP** connections.  Mitm.js intercepts and gives you a `Net.Socket` to
-communicate as if you were the remote server. For **HTTP requests** it even
-gives you `Http.IncomingMessage` and `Http.ServerResponse` — just like you're
-used to when writing Node.js servers.  Except there's no actual server running,
-it's all just _In-Process Interception™_.
+Mitm.js is a library for Node.js to **intercept and mock** outgoing network
+**TCP** and **HTTP** connections.  Mitm.js intercepts and gives you
+a `Net.Socket` to communicate as if you were the remote server. For **HTTP
+requests** it even gives you `Http.IncomingMessage` and `Http.ServerResponse`
+— just like you're used to when writing Node.js servers.  Except there's no
+actual server running, it's all just _In-Process Interception™_.
 
 Intercepting connections and requests is **extremely useful to test and ensure
 your code does what you expect**. Assert on request parameters and send back
