@@ -1,4 +1,4 @@
-## Unreleased
+## 0.5.0 (May 19, 2014)
 - Adds bypass functionality to not intercept a particular outgoing connection
   and let it connect as usual.  
   Let a connection happen by calling `bypass` on the socket object given to the
