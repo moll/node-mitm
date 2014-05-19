@@ -128,11 +128,11 @@ describe("Mitm", function() {
     it("must emit connect with options object given host and port", function() {
       var onConnect = Sinon.spy()
       this.mitm.on("connect", onConnect)
-      var socket = connect(25, "127.0.0.1")
+      var socket = connect(9, "127.0.0.1")
 
       onConnect.callCount.must.equal(1)
       onConnect.firstCall.args[0].must.equal(socket)
-      onConnect.firstCall.args[1].must.eql({host: "127.0.0.1", port: 25})
+      onConnect.firstCall.args[1].must.eql({host: "127.0.0.1", port: 9})
     })
 
     it("must emit connection on Mitm", function() {
@@ -188,7 +188,7 @@ describe("Mitm", function() {
       it("must not intercept", function(done) {
         this.mitm.on("connect", function(client) { client.bypass() })
 
-        Net.connect({host: "127.0.0.1", port: 25}).on("error", function(err) {
+        Net.connect({host: "127.0.0.1", port: 9}).on("error", function(err) {
           err.must.be.an.instanceof(Error)
           err.message.must.include("ECONNREFUSED")
           done()
@@ -199,7 +199,7 @@ describe("Mitm", function() {
         this.mitm.on("connect", function(client) { client.bypass() })
 
         var onConnect = Sinon.spy()
-        var client = Net.connect({host: "127.0.0.1", port: 25}, onConnect)
+        var client = Net.connect({host: "127.0.0.1", port: 9}, onConnect)
 
         client.on("error", process.nextTick.bind(null, function() {
           onConnect.callCount.must.equal(0)
@@ -211,7 +211,7 @@ describe("Mitm", function() {
         this.mitm.on("connect", function(client) { client.bypass() })
         var onConnection = Sinon.spy()
         this.mitm.on("connection", onConnection)
-        Net.connect({host: "127.0.0.1", port: 25}).on("error", function() {})
+        Net.connect({host: "127.0.0.1", port: 9}).on("error", function() {})
         onConnection.callCount.must.equal(0)
       })
     })
