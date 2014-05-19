@@ -86,6 +86,14 @@ issue][issues] on GitHub.
   you get when you write Node.js HTTP servers with `Net.Server` or use a library
   like [Express.js][express].
 
+- **Bypass** interception selectively for some connections (such as your SQL
+  server) and let them connect as usual.
+  ```javascript
+  mitm.on("connect", function(socket, opts) {
+    if (opts.host == "sql.example.org" && opts.port = 5432) socket.bypass()
+  })
+  ```
+
 - **Developed with automated tests**. Yeah, I know, why should one list this
   a feature when writing tests is just a sign of professionalism and respect
   towards other developers? But in a world where so many libraries and
@@ -179,6 +187,36 @@ That's to save us from having to set up certificates and disable their
 verification. But if you do need to test this, please ping me and we'll see if
 we can get Mitm.js to support that.
 
+### Bypassing interception
+You can bypass connections listening to the `connect` event on the Mitm instance
+and then calling `bypass` on the given socket. To help you do
+so selectively, `connect` is given the `options` object that was given to
+`Net.connect`:
+
+```javascript
+mitm.on("connect", function(socket, opts) {
+  if (opts.host == "sql.example.org" && opts.port = 5432) socket.bypass()
+})
+```
+
+Bypassed connections do **not** emit `connection` or `request` events. They're
+ignored by Mitm.js.
+
+In most cases you don't need to bypass because by the time you call `Mitm` in
+your tests to start intercepting, all of the long-running connections, such as
+database or cache connections, are already made.
+
+You might need to bypass connections you make to *localhost* when you're running
+integration tests against the HTTP server you started in the test process, but
+still want to intercept some other connections that this request might invoke.  
+The following should suffice:
+
+```javascript
+mitm.on("connect", function(socket, opts) {
+  if (opts.host == "localhost") socket.bypass()
+})
+```
+
 
 Events
 ------
@@ -187,8 +225,8 @@ Mitm.js](#using) for examples):
 
 Event      | Description
 -----------|------------
-connect    | Emitted when a TCP connection is made.<br> Given the client side `Net.Socket`.
-connection | Emitted when a TCP connection is made.<br> Given the server side `Net.Socket`.
+connect    | Emitted when a TCP connection is made.<br> Given the client side `Net.Socket` and `options` from `Net.connect`.
+connection | Emitted when a TCP connection is made.<br> Given the server side `Net.Socket` and `options` from `Net.connect`.
 request    | Emitted when a HTTP/HTTPS request is made.<br> Given the server side `Http.IncomingMessage` and `Http.ServerResponse`.
 
 
