@@ -133,14 +133,14 @@ describe("Mitm", function() {
 
     it("must call on connect given callback", function(done) {
       var onConnect = Sinon.spy()
-      var socket = connect({host: "foo"}, onConnect)
+      connect({host: "foo"}, onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
 
     it("must call on connect given port and callback", function(done) {
       var onConnect = Sinon.spy()
-      var socket = connect(80, onConnect)
+      connect(80, onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
@@ -150,7 +150,7 @@ describe("Mitm", function() {
     // object.
     it("must call on connect given port, host and callback", function(done) {
       var onConnect = Sinon.spy()
-      var socket = connect(80, "localhost", onConnect)
+      connect(80, "localhost", onConnect)
       process.nextTick(function() { onConnect.callCount.must.equal(1) })
       process.nextTick(done)
     })
