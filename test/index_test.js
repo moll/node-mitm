@@ -7,18 +7,19 @@ var IncomingMessage = Http.IncomingMessage
 var ServerResponse = Http.ServerResponse
 var ClientRequest = Http.ClientRequest
 var Mitm = require("..")
+var intercept = Mitm
 
 describe("Mitm", function() {
   beforeEach(function() { Mitm.passthrough = false })
 
   it("must return an instance of Mitm when called as a function", function() {
-    var mitm = Mitm()
+    var mitm = intercept()
     mitm.must.be.an.instanceof(Mitm)
     mitm.disable()
   })
 
   describe("Socket", function() {
-    beforeEach(function() { this.mitm = Mitm() })
+    beforeEach(function() { this.mitm = intercept() })
     afterEach(function() { this.mitm.disable() })
 
     describe(".prototype.write", function() {
@@ -86,7 +87,7 @@ describe("Mitm", function() {
   })
 
   describe("Net.connect", function() {
-    beforeEach(function() { this.mitm = Mitm() })
+    beforeEach(function() { this.mitm = intercept() })
     afterEach(function() { this.mitm.disable() })
     beforeEach(function() { this.sinon = Sinon.sandbox.create() })
     afterEach(function() { this.sinon.restore() })
@@ -166,7 +167,7 @@ describe("Mitm", function() {
   })
 
   describe("Tls.connect", function() {
-    beforeEach(function() { this.mitm = Mitm() })
+    beforeEach(function() { this.mitm = intercept() })
     afterEach(function() { this.mitm.disable() })
 
     it("must set authorized property", function() {
@@ -176,7 +177,7 @@ describe("Mitm", function() {
 
   function mustRequest(request) {
     describe("as a requester", function() {
-      beforeEach(function() { this.mitm = Mitm() })
+      beforeEach(function() { this.mitm = intercept() })
       afterEach(function() { this.mitm.disable() })
 
       it("must return ClientRequest", function() {
@@ -220,7 +221,7 @@ describe("Mitm", function() {
   })
 
   describe("IncomingMessage", function() {
-    beforeEach(function() { this.mitm = Mitm() })
+    beforeEach(function() { this.mitm = intercept() })
     afterEach(function() { this.mitm.disable() })
 
     it("must have URL", function(done) {
@@ -261,7 +262,7 @@ describe("Mitm", function() {
   })
 
   describe("ServerResponse", function() {
-    beforeEach(function() { this.mitm = Mitm() })
+    beforeEach(function() { this.mitm = intercept() })
     afterEach(function() { this.mitm.disable() })
 
     it("must respond with status, headers and body", function(done) {
