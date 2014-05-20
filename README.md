@@ -40,7 +40,7 @@ issue][issues] on GitHub.
   That's a different responsibility handled better by assertion libraries
   (you'll do no better than to pick [Must.js][must] for that ;-).
 
-- Use an **API you already to know** to assert or respond to requests — Mitm.js
+- Use an **API you already know** to assert or respond to requests — Mitm.js
   gives you access to a vanilla `Net.Socket` to respond with:
 
   ```javascript
