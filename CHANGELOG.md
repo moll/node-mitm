@@ -1,3 +1,7 @@
+## Unreleased
+- Fixes `Mitm.prototype.off` to remove bound events with
+  (`mitm.off("request", listener)`).
+
 ## 0.5.0 (May 19, 2014)
 - Adds bypass functionality to not intercept a particular outgoing connection
   and let it connect as usual.  

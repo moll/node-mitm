@@ -6,6 +6,7 @@ var Tls = require("tls")
 var IncomingMessage = Http.IncomingMessage
 var ServerResponse = Http.ServerResponse
 var ClientRequest = Http.ClientRequest
+var EventEmitter = require("events").EventEmitter
 var Mitm = require("..")
 var intercept = Mitm
 
@@ -401,6 +402,12 @@ describe("Mitm", function() {
           res.on("end", done)
         })
       })
+    })
+  })
+
+  describe(".prototype.off", function() {
+    it("must be an alias to EventEmitter.prototype.removeListener", function() {
+      Mitm.prototype.off.must.equal(EventEmitter.prototype.removeListener)
     })
   })
 })
