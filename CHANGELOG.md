@@ -1,4 +1,4 @@
-## Unreleased
+## 0.5.1 (May 28, 2014)
 - Fixes `Mitm.prototype.off` to remove bound events with
   (`mitm.off("request", listener)`).
 
