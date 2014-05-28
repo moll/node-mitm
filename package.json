@@ -5,6 +5,8 @@
 	"keywords": [
 		"http",
 		"https",
+		"intercept",
+		"interception",
 		"mock",
 		"network",
 		"socket",
