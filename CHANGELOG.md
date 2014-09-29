@@ -1,4 +1,4 @@
-## Unreleased
+## 1.0.0 (Sep 29, 2014)
 - Adds compatibility with Node v0.11.14.
 
 ## 0.5.1 (May 28, 2014)

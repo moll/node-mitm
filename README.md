@@ -21,10 +21,9 @@ servers**.
 Mitm.js should work both on the stable Node **v0.10.24** and up and **v0.11.11**
 and up and has **automated tests** to ensure it will stay that way.
 
-**Note**: This is a fairly early release of Mitm.js, so it might not cover all
-use cases you may come across. I've developed this on a need-to basis for
-testing [Monday Calendar][monday]'s syncing, so if you find a use-case I haven't
-come across, please fling me an [email][email], a [tweet][twitter] or [create an
+I've developed Mitm.js on a need-to basis for testing [Monday
+Calendar][monday]'s syncing, so if you find a use-case I haven't come across,
+please fling me an [email][email], a [tweet][twitter] or [create an
 issue][issues] on GitHub.
 
 ### Tour
