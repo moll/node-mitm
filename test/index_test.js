@@ -48,6 +48,17 @@ describe("Mitm", function() {
         server.read().must.equal("Hello")
       })
 
+      // Writing binary strings was introduced in Node v0.11.14.
+      // The test still passes for Node v0.10 and newer v0.11s, so let it be.
+      it("must write to server side from client side given binary",
+        function() {
+        var server; this.mitm.on("connection", function(s) { server = s })
+        var client = Net.connect({host: "foo"})
+        client.write("Hello", "binary")
+        server.setEncoding("binary")
+        server.read().must.equal("Hello")
+      })
+
       it("must write to server side from client side given a buffer",
         function() {
         var server; this.mitm.on("connection", function(s) { server = s })
