@@ -49,7 +49,8 @@ Mitm.prototype.enable = function() {
   }
 
   // Fake a regular, non-SSL socket for now as TLSSocket requires more mocking.
-  this.stubs.stub(Tls, "connect", _.compose(authorize, netConnect))
+  var tlsConnect = connect.bind(this, Tls.connect)
+  this.stubs.stub(Tls, "connect", _.compose(authorize, tlsConnect))
 
   // ClientRequest.prototype.onSocket is called synchronously from
   // ClientRequest's consturctor and is a convenient place to hook into new
