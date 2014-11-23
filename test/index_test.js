@@ -240,7 +240,7 @@ describe("Mitm", function() {
         this.mitm.on("connect", function(client) { client.bypass() })
         var onConnection = Sinon.spy()
         this.mitm.on("connection", onConnection)
-        Net.connect({host: "127.0.0.1", port: 9}).on("error", function() {})
+        Net.connect({host: "127.0.0.1", port: 9}).on("error", noop)
         onConnection.callCount.must.equal(0)
       })
     })
@@ -445,7 +445,7 @@ describe("Mitm", function() {
         this.mitm.on("request", function(req, res) { res.end() })
 
         client.on("response", function(res) {
-          res.on("data", function() {})
+          res.on("data", noop)
           res.on("end", done)
         })
       })
