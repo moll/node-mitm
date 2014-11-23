@@ -1,4 +1,4 @@
-## Unreleased
+## 1.0.1 (Nov 23, 2014)
 - Fixes bypassing TLS connections.  
   Thanks to [Roman Shtylman](https://github.com/defunctzombie)!
 
