@@ -197,9 +197,6 @@ describe("Mitm", function() {
     })
 
     describe("when bypassed", function() {
-      // Reset outer scope's Mitm initialization.
-      beforeEach(function() { this.mitm.disable() })
-
       beforeEach(function() { this.sinon = Sinon.sandbox.create() })
       afterEach(function() { this.mitm.disable() })
       afterEach(function() { this.sinon.restore() })
@@ -215,6 +212,7 @@ describe("Mitm", function() {
       })
 
       it("must call original Net.connect", function() {
+        this.mitm.disable()
         var connect = this.sinon.spy(Net, "connect")
         this.mitm = intercept()
         this.mitm.on("connect", function(client) { client.bypass() })
@@ -261,14 +259,12 @@ describe("Mitm", function() {
     })
 
     describe("when bypassed", function() {
-      // Reset outer scope's Mitm initialization.
-      beforeEach(function() { this.mitm.disable() })
-
       beforeEach(function() { this.sinon = Sinon.sandbox.create() })
       afterEach(function() { this.mitm.disable() })
       afterEach(function() { this.sinon.restore() })
 
       it("must call original Tls.connect", function() {
+        this.mitm.disable()
         var connect = this.sinon.spy(Tls, "connect")
         this.mitm = intercept()
         this.mitm.on("connect", function(client) { client.bypass() })
