@@ -197,6 +197,13 @@ describe("Mitm", function() {
     })
 
     describe("when bypassed", function() {
+      // Reset outer scope's Mitm initialization.
+      beforeEach(function() { this.mitm.disable() })
+
+      beforeEach(function() { this.sinon = Sinon.sandbox.create() })
+      afterEach(function() { this.mitm.disable() })
+      afterEach(function() { this.sinon.restore() })
+
       it("must not intercept", function(done) {
         this.mitm.on("connect", function(client) { client.bypass() })
 
@@ -205,6 +212,16 @@ describe("Mitm", function() {
           err.message.must.include("ECONNREFUSED")
           done()
         })
+      })
+
+      it("must call original Net.connect", function() {
+        var connect = this.sinon.spy(Net, "connect")
+        this.mitm = intercept()
+        this.mitm.on("connect", function(client) { client.bypass() })
+
+        Net.connect({host: "127.0.0.1", port: 9}).on("error", noop)
+        connect.callCount.must.equal(1)
+        connect.firstCall.args[0].must.eql({host: "127.0.0.1", port: 9})
       })
 
       it("must not call back twice on connect given callback", function(done) {
@@ -241,6 +258,25 @@ describe("Mitm", function() {
 
     it("must set authorized property", function() {
       Tls.connect({host: "foo"}).authorized.must.be.true()
+    })
+
+    describe("when bypassed", function() {
+      // Reset outer scope's Mitm initialization.
+      beforeEach(function() { this.mitm.disable() })
+
+      beforeEach(function() { this.sinon = Sinon.sandbox.create() })
+      afterEach(function() { this.mitm.disable() })
+      afterEach(function() { this.sinon.restore() })
+
+      it("must call original Tls.connect", function() {
+        var connect = this.sinon.spy(Tls, "connect")
+        this.mitm = intercept()
+        this.mitm.on("connect", function(client) { client.bypass() })
+
+        Tls.connect({host: "127.0.0.1", port: 9}).on("error", noop)
+        connect.callCount.must.equal(1)
+        connect.firstCall.args[0].must.eql({host: "127.0.0.1", port: 9})
+      })
     })
   })
 
@@ -422,3 +458,5 @@ describe("Mitm", function() {
     })
   })
 })
+
+function noop() {}
