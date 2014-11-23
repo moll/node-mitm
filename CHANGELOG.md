@@ -1,4 +1,4 @@
-## Unreleased
+## 1.0.2 (Nov 23, 2014)
 - Fixes tests by locking Mocha to v0.18.  
   For more info on Mocha's ill-behavior, see
   [#1195](https://github.com/mochajs/mocha/issues/1195).
