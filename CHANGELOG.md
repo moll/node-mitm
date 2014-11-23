@@ -1,3 +1,7 @@
+## Unreleased
+- Fixes bypassing TLS connections.  
+  Thanks to [Roman Shtylman](https://github.com/defunctzombie)!
+
 ## 1.0.0 (Sep 29, 2014)
 - Adds compatibility with Node v0.11.14.
 
