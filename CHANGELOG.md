@@ -1,3 +1,8 @@
+## Unreleased
+- Fixes tests by locking Mocha to v0.18.  
+  For more info on Mocha's ill-behavior, see
+  [#1195](https://github.com/mochajs/mocha/issues/1195).
+
 ## 1.0.1 (Nov 23, 2014)
 - Fixes bypassing TLS connections.  
   Thanks to [Roman Shtylman](https://github.com/defunctzombie)!
