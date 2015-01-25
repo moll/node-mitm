@@ -25,6 +25,7 @@ function Mitm() {
 Mitm.prototype.on = EventEmitter.prototype.on
 Mitm.prototype.once = EventEmitter.prototype.once
 Mitm.prototype.off = EventEmitter.prototype.removeListener
+Mitm.prototype.addListener = EventEmitter.prototype.addListener
 Mitm.prototype.removeListener = EventEmitter.prototype.removeListener
 Mitm.prototype.emit = EventEmitter.prototype.emit
 
