@@ -448,6 +448,12 @@ describe("Mitm", function() {
     })
   })
 
+  describe(".prototype.addListener", function() {
+    it("must be an alias to EventEmitter.prototype.addListener", function() {
+      Mitm.prototype.addListener.must.equal(EventEmitter.prototype.addListener)
+    })
+  })
+
   describe(".prototype.off", function() {
     it("must be an alias to EventEmitter.prototype.removeListener", function() {
       Mitm.prototype.off.must.equal(EventEmitter.prototype.removeListener)
