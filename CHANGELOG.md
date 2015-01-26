@@ -1,3 +1,7 @@
+## Unreleased
+- Adds `Mitm.prototype.addListener` to look more like an EventEmitter.  
+  Thanks to [Alex Wolfe](https://github.com/alexkwolfe)!
+
 ## 1.0.2 (Nov 23, 2014)
 - Fixes tests by locking Mocha to v0.18.  
   For more info on Mocha's ill-behavior, see
