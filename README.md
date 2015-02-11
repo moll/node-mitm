@@ -89,7 +89,7 @@ issue][issues] on GitHub.
   server) and let them connect as usual.
   ```javascript
   mitm.on("connect", function(socket, opts) {
-    if (opts.host == "sql.example.org" && opts.port = 5432) socket.bypass()
+    if (opts.host == "sql.example.org" && opts.port == 5432) socket.bypass()
   })
   ```
 
