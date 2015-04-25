@@ -72,8 +72,7 @@ function connect(orig, encrypted, opts, done) {
 
   var sockets = InternalSocket.pair()
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
-  client.encrypted = encrypted;
-
+  client.encrypted = encrypted
   client.bypass = bypass
 
   this.emit("connect", client, opts)
