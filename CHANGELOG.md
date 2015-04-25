@@ -1,4 +1,4 @@
-## Unreleased
+## 1.1.0 (Apr 25, 2015)
 - Returns an instance of `Tls.TLSSocket` from `Tls.connect`.  
   The returned socket has both `encrypted` and `authorized` set.  
   Thanks to [Andreas Lind](https://github.com/papandreou) for the initial
