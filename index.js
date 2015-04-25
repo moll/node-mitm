@@ -4,7 +4,8 @@ var Tls = require("tls")
 var Http = require("http")
 var Https = require("https")
 var ClientRequest = Http.ClientRequest
-var Socket = Net.Socket
+var Socket = require("./lib/socket")
+var TlsSocket = require("./lib/tls_socket")
 var EventEmitter = require("events").EventEmitter
 var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
@@ -33,10 +34,13 @@ var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
 Mitm.prototype.enable = function() {
   // Connect is called synchronously.
-  var netConnect = connect.bind(this, Net.connect)
+  var netConnect = connect.bind(this, Net.connect, Socket)
+  var tlsConnect = connect.bind(this, Tls.connect, TlsSocket)
+
   this.stubs.stub(Net, "connect", netConnect)
   this.stubs.stub(Net, "createConnection", netConnect)
   this.stubs.stub(Http.Agent.prototype, "createConnection", netConnect)
+  this.stubs.stub(Tls, "connect", tlsConnect)
 
   if (NODE_0_10) {
     // Node v0.10 sets createConnection on the object in the constructor.
@@ -48,10 +52,6 @@ Mitm.prototype.enable = function() {
     this.stubs.stub(Http.globalAgent, "maxSockets", Infinity)
     this.stubs.stub(Https.globalAgent, "maxSockets", Infinity)
   }
-
-  // Fake a regular, non-SSL socket for now as TLSSocket requires more mocking.
-  var tlsConnect = connect.bind(this, Tls.connect)
-  this.stubs.stub(Tls, "connect", _.compose(authorize, tlsConnect))
 
   // ClientRequest.prototype.onSocket is called synchronously from
   // ClientRequest's consturctor and is a convenient place to hook into new
@@ -66,13 +66,12 @@ Mitm.prototype.disable = function() {
   return this.stubs.restore(), this
 }
 
-function connect(orig, opts, done) {
-  var args = normalizeConnectArgs(Array.prototype.slice.call(arguments, 1))
+function connect(orig, Socket, opts, done) {
+  var args = normalizeConnectArgs(Array.prototype.slice.call(arguments, 2))
   opts = args[0]; done = args[1]
 
   var sockets = InternalSocket.pair()
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
-  client.bypass = bypass
 
   this.emit("connect", client, opts)
   if (client.bypassed) return orig.call(this, opts, done)
@@ -91,13 +90,6 @@ function connect(orig, opts, done) {
 
   return client
 }
-
-function authorize(socket) {
-  socket.encrypted = socket.authorized = true
-  return socket
-}
-
-function bypass() { this.bypassed = true }
 
 function request(socket) {
   if (!socket.server) return socket
