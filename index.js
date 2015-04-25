@@ -83,7 +83,6 @@ function connect(orig, encrypted, opts, done) {
   if (done) client.once("connect", done)
 
   var server = client.server = new Socket({handle: sockets[1]})
-  server.encrypted = encrypted;
   this.emit("connection", server, opts)
 
   // Emit connect in the next tick, otherwise it would be impossible to
