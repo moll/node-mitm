@@ -118,8 +118,12 @@ describe("Mitm", function() {
       connect({host: "foo", port: 80}).must.be.an.instanceof(Net.Socket)
     })
 
-    it("must set encrypted property", function() {
-      connect({host: "foo"}).encrypted.must.be.false()
+    it("must not set the encrypted property", function() {
+      connect({host: "foo"}).must.not.have.property("encrypted")
+    })
+
+    it("must not set the authorized property", function() {
+      connect({host: "foo"}).must.not.have.property("authorized")
     })
 
     it("must return an instance of Socket given port", function() {
@@ -258,12 +262,12 @@ describe("Mitm", function() {
     beforeEach(function() { this.mitm = intercept() })
     afterEach(function() { this.mitm.disable() })
 
-    it("must set authorized property", function() {
-      Tls.connect({host: "foo"}).authorized.must.be.true()
+    it("must set encrypted true", function() {
+      Tls.connect({host: "foo"}).encrypted.must.be.true()
     })
 
-    it("must set encrypted property", function() {
-      Tls.connect({host: "foo"}).encrypted.must.be.true()
+    it("must set authorized true", function() {
+      Tls.connect({host: "foo"}).authorized.must.be.true()
     })
 
     describe("when bypassed", function() {
