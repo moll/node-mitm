@@ -8,6 +8,7 @@ var ServerResponse = Http.ServerResponse
 var ClientRequest = Http.ClientRequest
 var EventEmitter = require("events").EventEmitter
 var Mitm = require("..")
+var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
 describe("Mitm", function() {
   beforeEach(function() { Mitm.passthrough = false })
@@ -164,6 +165,7 @@ describe("Mitm", function() {
 
     mustConnect(Net)
 
+    if (!NODE_0_10)
     it("must not return an instance of Tls.TLSSocket", function() {
       var socket = Net.connect({host: "foo", port: 80})
       socket.must.not.be.an.instanceof(Tls.TLSSocket)
@@ -268,14 +270,17 @@ describe("Mitm", function() {
 
     mustConnect(Tls)
 
+    if (!NODE_0_10)
     it("must return an instance of Tls.TLSSocket", function() {
       Tls.connect({host: "foo", port: 80}).must.be.an.instanceof(Tls.TLSSocket)
     })
 
+    if (!NODE_0_10)
     it("must return an instance of Tls.TLSSocket given port", function() {
       Tls.connect(80).must.be.an.instanceof(Tls.TLSSocket)
     })
 
+    if (!NODE_0_10)
     it("must return an instance of Tls.TLSSocket given port and host",
       function() {
       Tls.connect(80, "10.0.0.1").must.be.an.instanceof(Tls.TLSSocket)

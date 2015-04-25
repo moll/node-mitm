@@ -4,6 +4,9 @@
   Thanks to [Andreas Lind](https://github.com/papandreou) for the initial
   `encrypted` property patch!
 
+  On Node v0.10 `Tls.connect` will just return a `Net.Socket` with the
+  `encrypted` and `authorized` properties set.
+
 ## 1.0.3 (Jan 26, 2015)
 - Adds `Mitm.prototype.addListener` to look more like an EventEmitter.  
   Thanks to [Alex Wolfe](https://github.com/alexkwolfe)!
