@@ -118,6 +118,10 @@ describe("Mitm", function() {
       connect({host: "foo", port: 80}).must.be.an.instanceof(Net.Socket)
     })
 
+    it("must set encrypted property", function() {
+      connect({host: "foo"}).encrypted.must.be.false()
+    })
+
     it("must return an instance of Socket given port", function() {
       connect(80).must.be.an.instanceof(Net.Socket)
     })
@@ -256,6 +260,10 @@ describe("Mitm", function() {
 
     it("must set authorized property", function() {
       Tls.connect({host: "foo"}).authorized.must.be.true()
+    })
+
+    it("must set encrypted property", function() {
+      Tls.connect({host: "foo"}).encrypted.must.be.true()
     })
 
     describe("when bypassed", function() {

@@ -33,7 +33,7 @@ var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
 Mitm.prototype.enable = function() {
   // Connect is called synchronously.
-  var netConnect = connect.bind(this, Net.connect)
+  var netConnect = connect.bind(this, Net.connect, false)
   this.stubs.stub(Net, "connect", netConnect)
   this.stubs.stub(Net, "createConnection", netConnect)
   this.stubs.stub(Http.Agent.prototype, "createConnection", netConnect)
@@ -50,7 +50,7 @@ Mitm.prototype.enable = function() {
   }
 
   // Fake a regular, non-SSL socket for now as TLSSocket requires more mocking.
-  var tlsConnect = connect.bind(this, Tls.connect)
+  var tlsConnect = connect.bind(this, Tls.connect, true)
   this.stubs.stub(Tls, "connect", _.compose(authorize, tlsConnect))
 
   // ClientRequest.prototype.onSocket is called synchronously from
@@ -66,12 +66,14 @@ Mitm.prototype.disable = function() {
   return this.stubs.restore(), this
 }
 
-function connect(orig, opts, done) {
-  var args = normalizeConnectArgs(Array.prototype.slice.call(arguments, 1))
+function connect(orig, encrypted, opts, done) {
+  var args = normalizeConnectArgs(Array.prototype.slice.call(arguments, 2))
   opts = args[0]; done = args[1]
 
   var sockets = InternalSocket.pair()
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
+  client.encrypted = encrypted;
+
   client.bypass = bypass
 
   this.emit("connect", client, opts)
@@ -82,6 +84,7 @@ function connect(orig, opts, done) {
   if (done) client.once("connect", done)
 
   var server = client.server = new Socket({handle: sockets[1]})
+  server.encrypted = encrypted;
   this.emit("connection", server, opts)
 
   // Emit connect in the next tick, otherwise it would be impossible to
