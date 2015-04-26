@@ -11,14 +11,16 @@ var Mitm = require("..")
 var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
 describe("Mitm", function() {
+  var mitm;
+  var sinon;
+
   beforeEach(function() { Mitm.passthrough = false })
 
   it("must return an instance of Mitm when called as a function", function() {
-    var mitm = Mitm()
+    mitm = Mitm()
     mitm.must.be.an.instanceof(Mitm)
     mitm.disable()
   })
-
 
   function mustConnect(module) {
     describe("as connect", function() {
@@ -38,7 +40,7 @@ describe("Mitm", function() {
 
       it("must emit connect on Mitm", function() {
         var onConnect = Sinon.spy()
-        this.mitm.on("connect", onConnect)
+        mitm.on("connect", onConnect)
         var opts = {host: "foo"}
         var socket = module.connect(opts)
 
@@ -50,7 +52,7 @@ describe("Mitm", function() {
       it("must emit connect with options object given host and port",
         function() {
         var onConnect = Sinon.spy()
-        this.mitm.on("connect", onConnect)
+        mitm.on("connect", onConnect)
         var socket = module.connect(9, "127.0.0.1")
 
         onConnect.callCount.must.equal(1)
@@ -60,7 +62,7 @@ describe("Mitm", function() {
 
       it("must emit connection on Mitm", function() {
         var onConnection = Sinon.spy()
-        this.mitm.on("connection", onConnection)
+        mitm.on("connection", onConnection)
         var opts = {host: "foo"}
         var socket = module.connect(opts)
 
@@ -104,7 +106,7 @@ describe("Mitm", function() {
       })
 
       it("must intercept 127.0.0.1", function() {
-        var server; this.mitm.on("connection", function(s) { server = s })
+        var server; mitm.on("connection", function(s) { server = s })
         var client = module.connect({host: "127.0.0.1"})
         server.write("Hello")
         client.setEncoding("utf8")
@@ -113,7 +115,7 @@ describe("Mitm", function() {
 
       describe("when bypassed", function() {
         it("must not intercept", function(done) {
-          this.mitm.on("connect", function(client) { client.bypass() })
+          mitm.on("connect", function(client) { client.bypass() })
 
           module.connect({host: "127.0.0.1", port: 9}).on("error", function(err) {
             err.must.be.an.instanceof(Error)
@@ -123,10 +125,10 @@ describe("Mitm", function() {
         })
 
         it("must call original module.connect", function() {
-          this.mitm.disable()
-          var connect = this.sinon.spy(module, "connect")
-          this.mitm = Mitm()
-          this.mitm.on("connect", function(client) { client.bypass() })
+          mitm.disable()
+          var connect = sinon.spy(module, "connect")
+          mitm = Mitm()
+          mitm.on("connect", function(client) { client.bypass() })
 
           module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
           connect.callCount.must.equal(1)
@@ -135,7 +137,7 @@ describe("Mitm", function() {
 
         it("must not call back twice on connect given callback",
           function(done) {
-          this.mitm.on("connect", function(client) { client.bypass() })
+          mitm.on("connect", function(client) { client.bypass() })
 
           var onConnect = Sinon.spy()
           var client = module.connect({host: "127.0.0.1", port: 9}, onConnect)
@@ -147,9 +149,9 @@ describe("Mitm", function() {
         })
 
         it("must not emit connection", function() {
-          this.mitm.on("connect", function(client) { client.bypass() })
+          mitm.on("connect", function(client) { client.bypass() })
           var onConnection = Sinon.spy()
-          this.mitm.on("connection", onConnection)
+          mitm.on("connection", onConnection)
           module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
           onConnection.callCount.must.equal(0)
         })
@@ -158,10 +160,10 @@ describe("Mitm", function() {
   }
 
   describe("Net.connect", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
-    beforeEach(function() { this.sinon = Sinon.sandbox.create() })
-    afterEach(function() { this.sinon.restore() })
+    beforeEach(function() { mitm = Mitm() })
+    afterEach(function() { mitm.disable() })
+    beforeEach(function() { sinon = Sinon.sandbox.create() })
+    afterEach(function() { sinon.restore() })
 
     mustConnect(Net)
 
@@ -182,7 +184,7 @@ describe("Mitm", function() {
     describe("Socket", function() {
       describe(".prototype.write", function() {
         it("must write to client side from server side", function() {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.write("Hello")
           client.setEncoding("utf8")
@@ -190,7 +192,7 @@ describe("Mitm", function() {
         })
 
         it("must write to server side from client side", function() {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello")
           server.setEncoding("utf8")
@@ -201,7 +203,7 @@ describe("Mitm", function() {
         // The test still passes for Node v0.10 and newer v0.11s, so let it be.
         it("must write to server side from client side given binary",
           function() {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "binary")
           server.setEncoding("binary")
@@ -210,7 +212,7 @@ describe("Mitm", function() {
 
         it("must write to server side from client side given a buffer",
           function() {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write(new Buffer("Hello"))
           server.setEncoding("utf8")
@@ -219,7 +221,7 @@ describe("Mitm", function() {
 
         it("must write to server side from client side given a UTF-8 string",
           function() {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "utf8")
           server.setEncoding("utf8")
@@ -228,7 +230,7 @@ describe("Mitm", function() {
 
         it("must write to server side from client side given a ASCII string",
           function() {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "ascii")
           server.setEncoding("utf8")
@@ -237,7 +239,7 @@ describe("Mitm", function() {
 
         it("must write to server side from client side given a UCS-2 string",
           function() {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "ucs2")
           server.setEncoding("ucs2")
@@ -247,7 +249,7 @@ describe("Mitm", function() {
 
       describe(".prototype.end", function() {
         it("must emit end when closed on server side", function(done) {
-          var server; this.mitm.on("connection", function(s) { server = s })
+          var server; mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.end()
           client.on("end", done)
@@ -263,10 +265,10 @@ describe("Mitm", function() {
   })
 
   describe("Tls.connect", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
-    beforeEach(function() { this.sinon = Sinon.sandbox.create() })
-    afterEach(function() { this.sinon.restore() })
+    beforeEach(function() { mitm = Mitm() })
+    afterEach(function() { mitm.disable() })
+    beforeEach(function() { sinon = Sinon.sandbox.create() })
+    afterEach(function() { sinon.restore() })
 
     mustConnect(Tls)
 
@@ -297,8 +299,8 @@ describe("Mitm", function() {
 
   function mustRequest(request) {
     describe("as a requester", function() {
-      beforeEach(function() { this.mitm = Mitm() })
-      afterEach(function() { this.mitm.disable() })
+      beforeEach(function() { mitm = Mitm() })
+      afterEach(function() { mitm.disable() })
 
       it("must return ClientRequest", function() {
         request({host: "foo"}).must.be.an.instanceof(ClientRequest)
@@ -306,14 +308,14 @@ describe("Mitm", function() {
 
       it("must emit connect on Mitm", function() {
         var onConnect = Sinon.spy()
-        this.mitm.on("connect", onConnect)
+        mitm.on("connect", onConnect)
         request({host: "foo"})
         onConnect.callCount.must.equal(1)
       })
 
       it("must emit connection on Mitm", function() {
         var onConnection = Sinon.spy()
-        this.mitm.on("connection", onConnection)
+        mitm.on("connection", onConnection)
         request({host: "foo"})
         onConnection.callCount.must.equal(1)
       })
@@ -322,7 +324,7 @@ describe("Mitm", function() {
         var client = request({host: "foo"})
         client.end()
 
-        this.mitm.on("request", function(req, res) {
+        mitm.on("request", function(req, res) {
           req.must.be.an.instanceof(IncomingMessage)
           req.must.not.equal(client)
           res.must.be.an.instanceof(ServerResponse)
@@ -332,7 +334,7 @@ describe("Mitm", function() {
 
       describe("when bypassed", function() {
         it("must not intercept", function(done) {
-          this.mitm.on("connect", function(client) { client.bypass() })
+          mitm.on("connect", function(client) { client.bypass() })
           request({host: "127.0.0.1"}).on("error", function(err) {
             err.must.be.an.instanceof(Error)
             err.message.must.include("ECONNREFUSED")
@@ -341,9 +343,9 @@ describe("Mitm", function() {
         })
 
         it("must not emit request", function(done) {
-          this.mitm.on("connect", function(client) { client.bypass() })
+          mitm.on("connect", function(client) { client.bypass() })
           var onRequest = Sinon.spy()
-          this.mitm.on("request", onRequest)
+          mitm.on("request", onRequest)
           request({host: "127.0.0.1"}).on("error", function(err) {
             onRequest.callCount.must.equal(0)
             done()
@@ -362,13 +364,13 @@ describe("Mitm", function() {
   })
 
   describe("IncomingMessage", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
+    beforeEach(function() { mitm = Mitm() })
+    afterEach(function() { mitm.disable() })
 
     it("must have URL", function(done) {
       Http.request({host: "foo", path: "/foo"}).end()
 
-      this.mitm.on("request", function(req) {
+      mitm.on("request", function(req) {
         req.url.must.equal("/foo")
         done()
       })
@@ -379,7 +381,7 @@ describe("Mitm", function() {
       req.setHeader("Content-Type", "application/json")
       req.end()
 
-      this.mitm.on("request", function(req) {
+      mitm.on("request", function(req) {
         req.headers["content-type"].must.equal("application/json")
         done()
       })
@@ -389,7 +391,7 @@ describe("Mitm", function() {
       var client = Http.request({host: "foo", method: "POST"})
       client.write("Hello")
 
-      this.mitm.on("request", function(req, res) {
+      mitm.on("request", function(req, res) {
         req.setEncoding("utf8")
         req.on("data", function(data) { data.must.equal("Hello"); done() })
       })
@@ -397,17 +399,17 @@ describe("Mitm", function() {
 
     it("must have a reference to the ServerResponse", function(done) {
       Http.request({host: "foo", method: "POST"}).end()
-      this.mitm.on("request", function(req, res) { req.res.must.equal(res) })
-      this.mitm.on("request", done.bind(null, null))
+      mitm.on("request", function(req, res) { req.res.must.equal(res) })
+      mitm.on("request", done.bind(null, null))
     })
   })
 
   describe("ServerResponse", function() {
-    beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
+    beforeEach(function() { mitm = Mitm() })
+    afterEach(function() { mitm.disable() })
 
     it("must respond with status, headers and body", function(done) {
-      this.mitm.on("request", function(req, res) {
+      mitm.on("request", function(req, res) {
         res.statusCode = 442
         res.setHeader("Content-Type", "application/json")
         res.end("Hi!")
@@ -423,15 +425,15 @@ describe("Mitm", function() {
 
     it("must have a reference to the IncomingMessage", function(done) {
       Http.request({host: "foo", method: "POST"}).end()
-      this.mitm.on("request", function(req, res) { res.req.must.equal(req) })
-      this.mitm.on("request", done.bind(null, null))
+      mitm.on("request", function(req, res) { res.req.must.equal(req) })
+      mitm.on("request", done.bind(null, null))
     })
 
     describe(".prototype.write", function() {
       it("must make clientRequest emit response", function(done) {
         var req = Http.request({host: "foo"})
         req.end()
-        this.mitm.on("request", function(req, res) { res.write("Test") })
+        mitm.on("request", function(req, res) { res.write("Test") })
         req.on("response", done.bind(null, null))
       })
 
@@ -439,7 +441,7 @@ describe("Mitm", function() {
       // the callback can be called.
       it("must call given callback", function(done) {
         Http.request({host: "foo"}).end()
-        this.mitm.on("request", function(req, res) { res.write("Test", done) })
+        mitm.on("request", function(req, res) { res.write("Test", done) })
       })
     })
 
@@ -447,7 +449,7 @@ describe("Mitm", function() {
       it("must make ClientRequest emit response", function(done) {
         var client = Http.request({host: "foo"})
         client.end()
-        this.mitm.on("request", function(req, res) { res.end() })
+        mitm.on("request", function(req, res) { res.end() })
         client.on("response", done.bind(null, null))
       })
 
@@ -457,7 +459,7 @@ describe("Mitm", function() {
       it("must make IncomingMessage emit end", function(done) {
         var client = Http.request({host: "foo"})
         client.end()
-        this.mitm.on("request", function(req, res) { res.end() })
+        mitm.on("request", function(req, res) { res.end() })
 
         client.on("response", function(res) {
           res.on("data", noop)
