@@ -1,3 +1,4 @@
+var _ = require("underscore")
 var Sinon = require("sinon")
 var Net = require("net")
 var Tls = require("tls")
@@ -313,11 +314,29 @@ describe("Mitm", function() {
         onConnect.callCount.must.equal(1)
       })
 
+      it("must emit connect on Mitm after multiple connections", function() {
+        var onConnect = Sinon.spy()
+        this.mitm.on("connect", onConnect)
+        request({host: "foo"})
+        request({host: "foo"})
+        request({host: "foo"})
+        onConnect.callCount.must.equal(3)
+      })
+
       it("must emit connection on Mitm", function() {
         var onConnection = Sinon.spy()
         this.mitm.on("connection", onConnection)
         request({host: "foo"})
         onConnection.callCount.must.equal(1)
+      })
+
+      it("must emit connection on Mitm after multiple connections", function() {
+        var onConnection = Sinon.spy()
+        this.mitm.on("connection", onConnection)
+        request({host: "foo"})
+        request({host: "foo"})
+        request({host: "foo"})
+        onConnection.callCount.must.equal(3)
       })
 
       it("must emit request on Mitm", function(done) {
@@ -330,6 +349,13 @@ describe("Mitm", function() {
           res.must.be.an.instanceof(ServerResponse)
           done()
         })
+      })
+
+      it("must emit request on Mitm after multiple requests", function(done){
+        request({host: "foo"}).end()
+        request({host: "foo"}).end()
+        request({host: "foo"}).end()
+        this.mitm.on("request", _.after(3, done.bind(null, null)))
       })
 
       describe("when bypassed", function() {
@@ -356,11 +382,23 @@ describe("Mitm", function() {
   }
 
   describe("via Http.request", function() {
-    mustRequest(function() { return Http.request.apply(this, arguments) })
+    mustRequest(Http.request)
   })
 
   describe("via Https.request", function() {
-    mustRequest(function() { return Https.request.apply(this, arguments) })
+    mustRequest(Https.request)
+  })
+
+  describe("via Http.Agent", function() {
+    mustRequest(function(opts) {
+      return Http.request(_.extend({agent: new Http.Agent}, opts))
+    })
+  })
+
+  describe("via Https.Agent", function() {
+    mustRequest(function(opts) {
+      return Https.request(_.extend({agent: new Https.Agent}, opts))
+    })
   })
 
   describe("IncomingMessage", function() {

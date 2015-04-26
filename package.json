@@ -37,7 +37,7 @@
 	"scripts": {"test": "make test"},
 
 	"dependencies": {
-		"underscore": ">= 1.1.5 < 1.6"
+		"underscore": ">= 1.1.6 < 1.6"
 	},
 
 	"devDependencies": {
