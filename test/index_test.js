@@ -19,7 +19,6 @@ describe("Mitm", function() {
     mitm.disable()
   })
 
-
   function mustConnect(module) {
     describe("as connect", function() {
       it("must return an instance of Net.Socket", function() {
@@ -159,9 +158,9 @@ describe("Mitm", function() {
 
   describe("Net.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
     beforeEach(function() { this.sinon = Sinon.sandbox.create() })
     afterEach(function() { this.sinon.restore() })
+    afterEach(function() { this.mitm.disable() })
 
     mustConnect(Net)
 
@@ -257,6 +256,9 @@ describe("Mitm", function() {
   })
 
   describe("Net.createConnection", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
     it("must be equal to Net.connect", function() {
       Net.createConnection.must.equal(Net.connect)
     })
@@ -264,9 +266,9 @@ describe("Mitm", function() {
 
   describe("Tls.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
-    afterEach(function() { this.mitm.disable() })
     beforeEach(function() { this.sinon = Sinon.sandbox.create() })
     afterEach(function() { this.sinon.restore() })
+    afterEach(function() { this.mitm.disable() })
 
     mustConnect(Tls)
 
