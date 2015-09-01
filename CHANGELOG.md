@@ -1,3 +1,7 @@
+## Unreleased
+- Adds Io.js v3 support. Io.js v2.4.0 worked previously  
+  Thanks, [Vincent Voyer](http://function.fr), for the help!
+
 ## 1.1.0 (Apr 25, 2015)
 - Returns an instance of `Tls.TLSSocket` from `Tls.connect`.  
   The returned socket has both `encrypted` and `authorized` set.  
