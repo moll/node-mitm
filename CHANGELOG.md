@@ -1,4 +1,4 @@
-## Unreleased
+## 1.2.0 (Sep 1, 2015)
 - Adds Io.js v3 support. Io.js v2.4.0 worked previously  
   Thanks, [Vincent Voyer](http://function.fr), for the help!
 
