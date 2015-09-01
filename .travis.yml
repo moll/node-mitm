@@ -1,5 +1,12 @@
 language: node_js
-node_js: ["0.10", "0.11", "0.12"]
+node_js:
+  - "node"
+  - "0.10"
+  - "0.11"
+  - "0.12"
+  - "iojs"
+  - "iojs-v2.4.0"
+  - "iojs-v3.2.0"
 
 notifications:
   email: ["andri@dot.ee"]

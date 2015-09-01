@@ -1,12 +1,10 @@
 Mitm.js
 =======
-[![NPM version][npm-badge]](http://badge.fury.io/js/mitm)
+[![NPM version][npm-badge]](https://www.npmjs.com/package/mitm)
 [![Build status][travis-badge]](https://travis-ci.org/moll/node-mitm)
-[npm-badge]: https://badge.fury.io/js/mitm.png
-[travis-badge]: https://travis-ci.org/moll/node-mitm.png?branch=master
 
-Mitm.js is a library for Node.js to **intercept and mock** outgoing network
-**TCP** and **HTTP** connections.  Mitm.js intercepts and gives you
+Mitm.js is a library for Node.js (and Io.js) to **intercept and mock** outgoing
+network **TCP** and **HTTP** connections.  Mitm.js intercepts and gives you
 a `Net.Socket` to communicate as if you were the remote server. For **HTTP
 requests** it even gives you `Http.IncomingMessage` and `Http.ServerResponse`
 — just like you're used to when writing Node.js servers.  Except there's no
@@ -25,6 +23,9 @@ I've developed Mitm.js on a need-to basis for testing [Monday
 Calendar][monday]'s syncing, so if you find a use-case I haven't come across,
 please fling me an [email][email], a [tweet][twitter] or [create an
 issue][issues] on GitHub.
+
+[npm-badge]: https://img.shields.io/npm/v/mitm.svg
+[travis-badge]: https://travis-ci.org/moll/node-mitm.png?branch=master
 
 ### Tour
 - Intercept both **TCP socket connections** (`Net.connect`) and **HTTP
