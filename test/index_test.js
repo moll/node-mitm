@@ -47,7 +47,7 @@ describe("Mitm", function() {
         onConnect.firstCall.args[1].must.equal(opts)
       })
 
-      it("must emit connect with options object given host and port",
+      it("must emit connect on Mitm with options object given host and port",
         function() {
         var onConnect = Sinon.spy()
         this.mitm.on("connect", onConnect)
@@ -341,7 +341,7 @@ describe("Mitm", function() {
   })
 
   function mustRequest(request) {
-    describe("as a requester", function() {
+    describe("as request", function() {
       beforeEach(function() { this.mitm = Mitm() })
       afterEach(function() { this.mitm.disable() })
 
