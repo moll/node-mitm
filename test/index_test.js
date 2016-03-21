@@ -112,6 +112,9 @@ describe("Mitm", function() {
       })
 
       describe("when bypassed", function() {
+        beforeEach(function() { this.sinon = Sinon.sandbox.create() })
+        afterEach(function() { this.sinon.restore() })
+
         it("must not intercept", function(done) {
           this.mitm.on("connect", function(client) { client.bypass() })
 
@@ -124,13 +127,19 @@ describe("Mitm", function() {
 
         it("must call original module.connect", function() {
           this.mitm.disable()
-          var connect = this.sinon.spy(module, "connect")
-          this.mitm = Mitm()
-          this.mitm.on("connect", function(client) { client.bypass() })
 
-          module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
-          connect.callCount.must.equal(1)
-          connect.firstCall.args[0].must.eql({host: "127.0.0.1", port: 9})
+          var connect = this.sinon.spy(module, "connect")
+          var mitm = Mitm()
+          mitm.on("connect", function(client) { client.bypass() })
+
+          try {
+            module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
+            connect.callCount.must.equal(1)
+            connect.firstCall.args[0].must.eql({host: "127.0.0.1", port: 9})
+          }
+          // Working around Mocha's context bug(s) and poor design decision
+          // with a manual `finally`.
+          finally { mitm.disable() }
         })
 
         it("must not call back twice on connect given callback",
@@ -159,8 +168,6 @@ describe("Mitm", function() {
 
   describe("Net.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
-    beforeEach(function() { this.sinon = Sinon.sandbox.create() })
-    afterEach(function() { this.sinon.restore() })
     afterEach(function() { this.mitm.disable() })
 
     mustConnect(Net)
@@ -267,8 +274,6 @@ describe("Mitm", function() {
 
   describe("Tls.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
-    beforeEach(function() { this.sinon = Sinon.sandbox.create() })
-    afterEach(function() { this.sinon.restore() })
     afterEach(function() { this.mitm.disable() })
 
     mustConnect(Tls)
