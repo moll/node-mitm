@@ -83,10 +83,13 @@ function connect(orig, Socket, opts, done) {
   var server = client.server = new Socket({handle: sockets[1]})
   this.emit("connection", server, opts)
 
-  // Emit connect in the next tick, otherwise it would be impossible to
-  // listen to it after calling Net.connect.
-  process.nextTick(client.emit.bind(client, "connect"))
-  process.nextTick(server.emit.bind(server, "connect"))
+  // Ensure connect is emitted in next ticks, otherwise it would be impossible
+  // to listen to it after calling Net.connect or listening to it after the
+  // ClientRequest emits "socket".
+  setTimeout(function() {
+    client.emit("connect")
+    server.emit("connect")
+  })
 
   return client
 }

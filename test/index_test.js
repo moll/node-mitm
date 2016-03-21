@@ -393,6 +393,15 @@ describe("Mitm", function() {
         client.on("socket", done.bind(null, null))
       })
 
+      // https://github.com/moll/node-mitm/pull/25
+      it("must emit connect after socket event", function(done) {
+        var client = request({host: "foo"})
+
+        client.on("socket", function(socket) {
+          socket.on("connect", done.bind(null, null))
+        })
+      })
+
       describe("when bypassed", function() {
         it("must not intercept", function(done) {
           this.mitm.on("connect", function(client) { client.bypass() })
