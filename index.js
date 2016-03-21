@@ -104,7 +104,8 @@ function request(socket) {
     self.emit = _.compose(process.nextTick, Function.bind.bind(this.emit, this))
   }
 
-  return createRequestAndResponse.call(self, socket.server), socket
+  createRequestAndResponse.call(self, socket.server)
+  return socket
 }
 
 function addCrossReferences(req, res) { req.res = res; res.req = req }
