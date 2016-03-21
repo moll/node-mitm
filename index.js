@@ -83,10 +83,13 @@ function connect(orig, Socket, opts, done) {
   var server = client.server = new Socket({handle: sockets[1]})
   this.emit("connection", server, opts)
 
-  // Emit connect in the next tick, otherwise it would be impossible to
-  // listen to it after calling Net.connect.
-  process.nextTick(client.emit.bind(client, "connect"))
-  process.nextTick(server.emit.bind(server, "connect"))
+  // emit('socket') happens in the next tick, so we need to delay the 'connect' event on the socket with two ticks
+  process.nextTick(function () {
+    // Emit connect in the next tick, otherwise it would be impossible to
+    // listen to it after calling Net.connect.
+    process.nextTick(client.emit.bind(client, "connect"))
+    process.nextTick(server.emit.bind(server, "connect"))
+  })
 
   return client
 }

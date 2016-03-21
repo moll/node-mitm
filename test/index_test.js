@@ -70,26 +70,42 @@ describe("Mitm", function() {
         onConnection.firstCall.args[1].must.equal(opts)
       })
 
-      it("must emit connect on socket in next tick", function(done) {
+      it("must emit connect on socket in two ticks", function(done) {
         var socket = module.connect({host: "foo"})
         var onConnect = Sinon.spy()
         socket.on("connect", onConnect)
-        process.nextTick(function() { onConnect.callCount.must.equal(1) })
-        process.nextTick(done)
+        process.nextTick(function() {
+          onConnect.callCount.must.equal(0)
+          process.nextTick(function() {
+            onConnect.callCount.must.equal(1)
+            done()
+          })
+        })
       })
 
       it("must call back on connect given callback", function(done) {
         var onConnect = Sinon.spy()
         module.connect({host: "foo"}, onConnect)
-        process.nextTick(function() { onConnect.callCount.must.equal(1) })
-        process.nextTick(done)
+        process.nextTick(function() {
+          onConnect.callCount.must.equal(0)
+          process.nextTick(function() {
+            onConnect.callCount.must.equal(1)
+            done()
+          })
+        })
       })
 
       it("must call back on connect given port and callback", function(done) {
         var onConnect = Sinon.spy()
         module.connect(80, onConnect)
-        process.nextTick(function() { onConnect.callCount.must.equal(1) })
-        process.nextTick(done)
+
+        process.nextTick(function() {
+          onConnect.callCount.must.equal(0)
+          process.nextTick(function() {
+            onConnect.callCount.must.equal(1)
+            done()
+          })
+        })
       })
 
       // This was a bug found on Apr 26, 2014 where the host argument was taken
@@ -99,8 +115,14 @@ describe("Mitm", function() {
         function(done) {
         var onConnect = Sinon.spy()
         module.connect(80, "localhost", onConnect)
-        process.nextTick(function() { onConnect.callCount.must.equal(1) })
-        process.nextTick(done)
+
+        process.nextTick(function() {
+          onConnect.callCount.must.equal(0)
+          process.nextTick(function() {
+            onConnect.callCount.must.equal(1)
+            done()
+          })
+        })
       })
 
       it("must intercept 127.0.0.1", function(done) {
