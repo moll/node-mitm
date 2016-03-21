@@ -1,3 +1,8 @@
+## Unreleased
+- Fixes writing to sockets returned by Mitm by postponing writing until the next
+  tick. Brings it in line with Node's behavior.  
+  Thanks, [Maarten Winter](https://github.com/mwoc), for the help!
+
 ## 1.2.0 (Sep 1, 2015)
 - Adds Io.js v3 support. Io.js v2.4.0 worked previously  
   Thanks, [Vincent Voyer](http://function.fr), for the help!
