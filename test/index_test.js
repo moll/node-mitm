@@ -114,6 +114,9 @@ describe("Mitm", function() {
       })
 
       describe("when bypassed", function() {
+        beforeEach(function() { this.sinon = Sinon.sandbox.create() })
+        afterEach(function() { this.sinon.restore() })
+
         it("must not intercept", function(done) {
           this.mitm.on("connect", function(client) { client.bypass() })
 
@@ -126,13 +129,19 @@ describe("Mitm", function() {
 
         it("must call original module.connect", function() {
           this.mitm.disable()
-          var connect = this.sinon.spy(module, "connect")
-          this.mitm = Mitm()
-          this.mitm.on("connect", function(client) { client.bypass() })
 
-          module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
-          connect.callCount.must.equal(1)
-          connect.firstCall.args[0].must.eql({host: "127.0.0.1", port: 9})
+          var connect = this.sinon.spy(module, "connect")
+          var mitm = Mitm()
+          mitm.on("connect", function(client) { client.bypass() })
+
+          try {
+            module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
+            connect.callCount.must.equal(1)
+            connect.firstCall.args[0].must.eql({host: "127.0.0.1", port: 9})
+          }
+          // Working around Mocha's context bug(s) and poor design decision
+          // with a manual `finally`.
+          finally { mitm.disable() }
         })
 
         it("must not call back twice on connect given callback",
@@ -161,8 +170,6 @@ describe("Mitm", function() {
 
   describe("Net.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
-    beforeEach(function() { this.sinon = Sinon.sandbox.create() })
-    afterEach(function() { this.sinon.restore() })
     afterEach(function() { this.mitm.disable() })
 
     mustConnect(Net)
@@ -183,7 +190,7 @@ describe("Mitm", function() {
 
     describe("Socket", function() {
       describe(".prototype.write", function() {
-        it("must write to client side from server side", function(done) {
+        it("must write to client from server", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.write("Hello")
@@ -193,7 +200,7 @@ describe("Mitm", function() {
           process.nextTick(done)
         })
 
-        it("must write to server side from client side", function(done) {
+        it("must write to server from client", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello")
@@ -205,8 +212,7 @@ describe("Mitm", function() {
 
         // Writing binary strings was introduced in Node v0.11.14.
         // The test still passes for Node v0.10 and newer v0.11s, so let it be.
-        it("must write to server side from client side given binary",
-          function(done) {
+        it("must write to server from client given binary", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "binary")
@@ -216,8 +222,7 @@ describe("Mitm", function() {
           process.nextTick(done)
         })
 
-        it("must write to server side from client side given a buffer",
-          function(done) {
+        it("must write to server from client given a buffer", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write(new Buffer("Hello"))
@@ -227,7 +232,7 @@ describe("Mitm", function() {
           process.nextTick(done)
         })
 
-        it("must write to server side from client side given a UTF-8 string",
+        it("must write to server from client given a UTF-8 string",
           function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
@@ -238,7 +243,7 @@ describe("Mitm", function() {
           process.nextTick(done)
         })
 
-        it("must write to server side from client side given a ASCII string",
+        it("must write to server from client given a ASCII string",
           function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
@@ -249,7 +254,7 @@ describe("Mitm", function() {
           process.nextTick(done)
         })
 
-        it("must write to server side from client side given a UCS-2 string",
+        it("must write to server from client given a UCS-2 string",
           function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
@@ -264,7 +269,7 @@ describe("Mitm", function() {
       })
 
       describe(".prototype.end", function() {
-        it("must emit end when closed on server side", function(done) {
+        it("must emit end when closed on server", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.end()
@@ -285,8 +290,6 @@ describe("Mitm", function() {
 
   describe("Tls.connect", function() {
     beforeEach(function() { this.mitm = Mitm() })
-    beforeEach(function() { this.sinon = Sinon.sandbox.create() })
-    afterEach(function() { this.sinon.restore() })
     afterEach(function() { this.mitm.disable() })
 
     mustConnect(Tls)
