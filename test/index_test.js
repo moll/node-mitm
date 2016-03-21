@@ -188,7 +188,7 @@ describe("Mitm", function() {
 
     describe("Socket", function() {
       describe(".prototype.write", function() {
-        it("must write to client side from server side", function() {
+        it("must write to client from server", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.write("Hello")
@@ -196,7 +196,7 @@ describe("Mitm", function() {
           client.read().must.equal("Hello")
         })
 
-        it("must write to server side from client side", function() {
+        it("must write to server from client", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello")
@@ -206,8 +206,7 @@ describe("Mitm", function() {
 
         // Writing binary strings was introduced in Node v0.11.14.
         // The test still passes for Node v0.10 and newer v0.11s, so let it be.
-        it("must write to server side from client side given binary",
-          function() {
+        it("must write to server from client given binary", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "binary")
@@ -215,8 +214,7 @@ describe("Mitm", function() {
           server.read().must.equal("Hello")
         })
 
-        it("must write to server side from client side given a buffer",
-          function() {
+        it("must write to server from client given a buffer", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write(new Buffer("Hello"))
@@ -224,8 +222,7 @@ describe("Mitm", function() {
           server.read().must.equal("Hello")
         })
 
-        it("must write to server side from client side given a UTF-8 string",
-          function() {
+        it("must write to server from client given a UTF-8 string", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "utf8")
@@ -233,8 +230,7 @@ describe("Mitm", function() {
           server.read().must.equal("Hello")
         })
 
-        it("must write to server side from client side given a ASCII string",
-          function() {
+        it("must write to server from client given a ASCII string", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "ascii")
@@ -242,7 +238,7 @@ describe("Mitm", function() {
           server.read().must.equal("Hello")
         })
 
-        it("must write to server side from client side given a UCS-2 string",
+        it("must write to server from client given a UCS-2 string",
           function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
@@ -253,7 +249,7 @@ describe("Mitm", function() {
       })
 
       describe(".prototype.end", function() {
-        it("must emit end when closed on server side", function(done) {
+        it("must emit end when closed on server", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.end()
