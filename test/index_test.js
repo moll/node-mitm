@@ -164,8 +164,8 @@ describe("Mitm", function() {
 
     if (!NODE_0_10)
     it("must not return an instance of Tls.TLSSocket", function() {
-      var socket = Net.connect({host: "foo", port: 80})
-      socket.must.not.be.an.instanceof(Tls.TLSSocket)
+      var client = Net.connect({host: "foo", port: 80})
+      client.must.not.be.an.instanceof(Tls.TLSSocket)
     })
 
     it("must not set the encrypted property", function() {
@@ -174,6 +174,21 @@ describe("Mitm", function() {
 
     it("must not set the authorized property", function() {
       Net.connect({host: "foo"}).must.not.have.property("authorized")
+    })
+
+    it("must not emit secureConnect on client", function(done) {
+      var client = Net.connect({host: "foo"})
+      // Let Mocha raise an error when done called twice.
+      client.on("secureConnect", done.bind(null, null))
+      done()
+    })
+
+    it("must not emit secureConnect on server", function(done) {
+      var server; this.mitm.on("connection", function(s) { server = s })
+      Net.connect({host: "foo"})
+      // Let Mocha raise an error when done called twice.
+      server.on("secureConnect", done.bind(null, null))
+      done()
     })
 
     describe("Socket", function() {
@@ -319,6 +334,38 @@ describe("Mitm", function() {
       Tls.connect(80, "10.0.0.1").must.be.an.instanceof(Tls.TLSSocket)
     })
 
+    it("must emit secureConnect in next ticks", function(done) {
+      var socket = Tls.connect({host: "foo"})
+      socket.on("secureConnect", done.bind(null, null))
+    })
+
+    it("must emit secureConnect after connect in next ticks", function(done) {
+      var socket = Tls.connect({host: "foo"})
+
+      socket.on("connect", function() {
+        socket.on("secureConnect", done.bind(null, null))
+      })
+    })
+
+    it("must not emit secureConnect on server", function(done) {
+      var server; this.mitm.on("connection", function(s) { server = s })
+      Tls.connect({host: "foo"})
+      // Let Mocha raise an error when done called twice.
+      server.on("secureConnect", done.bind(null, null))
+      done()
+    })
+
+    it("must call back on secureConnect", function(done) {
+      var connected = false
+
+      var client = Tls.connect({host: "foo"}, function() {
+        connected.must.be.true()
+        done()
+      })
+
+      client.on("connect", function() { connected = true })
+    })
+
     it("must set encrypted true", function() {
       Tls.connect({host: "foo"}).encrypted.must.be.true()
     })
@@ -330,6 +377,7 @@ describe("Mitm", function() {
 
   function mustRequest(request) {
     describe("as request", function() {
+      beforeEach(function() { this.mitm.disable() })
       beforeEach(function() { this.mitm = Mitm() })
       afterEach(function() { this.mitm.disable() })
 
@@ -430,7 +478,19 @@ describe("Mitm", function() {
   })
 
   describe("via Https.request", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
     mustRequest(Https.request)
+
+    // https://github.com/moll/node-mitm/pull/25
+    it("must emit secureConnect after socket event", function(done) {
+      var client = Https.request({host: "foo"})
+
+      client.on("socket", function(socket) {
+        socket.on("secureConnect", done.bind(null, null))
+      })
+    })
   })
 
   describe("via Http.Agent", function() {

@@ -9,6 +9,7 @@ var TlsSocket = require("./lib/tls_socket")
 var EventEmitter = require("events").EventEmitter
 var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
+var slice = Function.call.bind(Array.prototype.slice)
 var normalizeConnectArgs = Net._normalizeConnectArgs
 var createRequestAndResponse = Http._connectionListener
 module.exports = Mitm
@@ -34,8 +35,8 @@ var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
 Mitm.prototype.enable = function() {
   // Connect is called synchronously.
-  var netConnect = this.connect.bind(this, Net.connect, Socket)
-  var tlsConnect = this.connect.bind(this, Tls.connect, TlsSocket)
+  var netConnect = this.tcpConnect.bind(this, Net.connect)
+  var tlsConnect = this.tlsConnect.bind(this, Tls.connect)
 
   this.stubs.stub(Net, "connect", netConnect)
   this.stubs.stub(Net, "createConnection", netConnect)
@@ -69,18 +70,11 @@ Mitm.prototype.disable = function() {
 }
 
 Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
-  var args = normalizeConnectArgs(Array.prototype.slice.call(arguments, 2))
-  opts = args[0]; done = args[1]
-
   var sockets = InternalSocket.pair()
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
 
   this.emit("connect", client, opts)
   if (client.bypassed) return orig.call(this, opts, done)
-
-  // The callback is originally bound to the connect event in
-  // Socket.prototype.connect.
-  if (done) client.once("connect", done)
 
   var server = client.server = new Socket({handle: sockets[1]})
   this.emit("connection", server, opts)
@@ -88,10 +82,34 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
   // Ensure connect is emitted in next ticks, otherwise it would be impossible
   // to listen to it after calling Net.connect or listening to it after the
   // ClientRequest emits "socket".
-  setTimeout(function() {
-    client.emit("connect")
-    server.emit("connect")
-  })
+  setTimeout(client.emit.bind(client, "connect"))
+  setTimeout(server.emit.bind(server, "connect"))
+
+  return client
+}
+
+Mitm.prototype.tcpConnect = function(orig, opts, done) {
+  var args = normalizeConnectArgs(slice(arguments, 1))
+  opts = args[0]; done = args[1]
+
+  // The callback is originally bound to the connect event in
+  // Socket.prototype.connect.
+  var client = this.connect(orig, Socket, opts, done)
+  if (client.server == null) return client
+  if (done) client.once("connect", done)
+
+  return client
+}
+
+Mitm.prototype.tlsConnect = function(orig, opts, done) {
+  var args = normalizeConnectArgs(slice(arguments, 1))
+  opts = args[0]; done = args[1]
+
+  var client = this.connect(orig, TlsSocket, opts, done)
+  if (client.server == null) return client
+  if (done) client.once("secureConnect", done)
+
+  setTimeout(client.emit.bind(client, "secureConnect"))
 
   return client
 }

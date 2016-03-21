@@ -5,6 +5,8 @@
 - Fixes listening to the "connect" event after "socket" is emitted on
   `ClientRequest`.  
   Thanks, [Maarten Winter](https://github.com/mwoc), for the help!
+- Fixes intercepting TLS connections to properly emit the "secureConnect" event
+  and given a callback, bind it to "secureConnect" rather than "connect".
 
 ## 1.2.0 (Sep 1, 2015)
 - Adds Io.js v3 support. Io.js v2.4.0 worked previously  
