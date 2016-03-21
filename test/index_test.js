@@ -108,11 +108,9 @@ describe("Mitm", function() {
         var client = module.connect({host: "127.0.0.1"})
         server.write("Hello")
 
-        process.nextTick(function () {
-          client.setEncoding("utf8")
-          client.read().must.equal("Hello")
-          done()
-        })
+        client.setEncoding("utf8")
+        process.nextTick(function() { client.read().must.equal("Hello") })
+        process.nextTick(done)
       })
 
       describe("when bypassed", function() {
@@ -189,23 +187,20 @@ describe("Mitm", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.write("Hello")
-          process.nextTick(function () {
-            client.setEncoding("utf8")
-            client.read().must.equal("Hello")
-            done()
-          })
+
+          client.setEncoding("utf8")
+          process.nextTick(function() { client.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
         it("must write to server side from client side", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello")
-          
-          process.nextTick(function () {
-            server.setEncoding("utf8")
-            server.read().must.equal("Hello")
-            done()
-          })
+
+          server.setEncoding("utf8")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
         // Writing binary strings was introduced in Node v0.11.14.
@@ -216,11 +211,9 @@ describe("Mitm", function() {
           var client = Net.connect({host: "foo"})
           client.write("Hello", "binary")
 
-          process.nextTick(function () {
-            server.setEncoding("binary")
-            server.read().must.equal("Hello")
-            done()
-          })
+          server.setEncoding("binary")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
         it("must write to server side from client side given a buffer",
@@ -229,11 +222,9 @@ describe("Mitm", function() {
           var client = Net.connect({host: "foo"})
           client.write(new Buffer("Hello"))
 
-          process.nextTick(function () {
-            server.setEncoding("utf8")
-            server.read().must.equal("Hello")
-            done()
-          })
+          server.setEncoding("utf8")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
         it("must write to server side from client side given a UTF-8 string",
@@ -242,11 +233,9 @@ describe("Mitm", function() {
           var client = Net.connect({host: "foo"})
           client.write("Hello", "utf8")
 
-          process.nextTick(function () {
-            server.setEncoding("utf8")
-            server.read().must.equal("Hello")
-            done()
-          })
+          server.setEncoding("utf8")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
         it("must write to server side from client side given a ASCII string",
@@ -255,11 +244,9 @@ describe("Mitm", function() {
           var client = Net.connect({host: "foo"})
           client.write("Hello", "ascii")
 
-          process.nextTick(function () {
-            server.setEncoding("utf8")
-            server.read().must.equal("Hello")
-            done()
-          })
+          server.setEncoding("utf8")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
         it("must write to server side from client side given a UCS-2 string",
@@ -268,7 +255,7 @@ describe("Mitm", function() {
           var client = Net.connect({host: "foo"})
           client.write("Hello", "ucs2")
 
-          process.nextTick(function () {
+          process.nextTick(function() {
             server.setEncoding("ucs2")
             server.read().must.equal("H\u0000e\u0000l\u0000l\u0000o\u0000")
             done()
@@ -382,7 +369,7 @@ describe("Mitm", function() {
         })
       })
 
-      it("must emit request on Mitm after multiple requests", function(done){
+      it("must emit request on Mitm after multiple requests", function(done) {
         request({host: "foo"}).end()
         request({host: "foo"}).end()
         request({host: "foo"}).end()
