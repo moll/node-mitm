@@ -54,7 +54,7 @@ Mitm.prototype.enable = function() {
   }
 
   // ClientRequest.prototype.onSocket is called synchronously from
-  // ClientRequest's consturctor and is a convenient place to hook into new
+  // ClientRequest's constructor and is a convenient place to hook into new
   // ClientRequests.
   var onSocket = _.compose(ClientRequest.prototype.onSocket, request.bind(this))
   this.stubs.stub(ClientRequest.prototype, "onSocket", onSocket)
