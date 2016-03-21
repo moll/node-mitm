@@ -34,8 +34,8 @@ var NODE_0_10 = !!process.version.match(/^v0\.10\./)
 
 Mitm.prototype.enable = function() {
   // Connect is called synchronously.
-  var netConnect = connect.bind(this, Net.connect, Socket)
-  var tlsConnect = connect.bind(this, Tls.connect, TlsSocket)
+  var netConnect = this.connect.bind(this, Net.connect, Socket)
+  var tlsConnect = this.connect.bind(this, Tls.connect, TlsSocket)
 
   this.stubs.stub(Net, "connect", netConnect)
   this.stubs.stub(Net, "createConnection", netConnect)
@@ -56,8 +56,10 @@ Mitm.prototype.enable = function() {
   // ClientRequest.prototype.onSocket is called synchronously from
   // ClientRequest's constructor and is a convenient place to hook into new
   // ClientRequests.
-  var onSocket = _.compose(ClientRequest.prototype.onSocket, request.bind(this))
-  this.stubs.stub(ClientRequest.prototype, "onSocket", onSocket)
+  this.stubs.stub(ClientRequest.prototype, "onSocket", _.compose(
+    ClientRequest.prototype.onSocket,
+    this.request.bind(this)
+  ))
 
   return this
 }
@@ -66,7 +68,7 @@ Mitm.prototype.disable = function() {
   return this.stubs.restore(), this
 }
 
-function connect(orig, Socket, opts, done) {
+Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
   var args = normalizeConnectArgs(Array.prototype.slice.call(arguments, 2))
   opts = args[0]; done = args[1]
 
@@ -94,7 +96,7 @@ function connect(orig, Socket, opts, done) {
   return client
 }
 
-function request(socket) {
+Mitm.prototype.request = function request(socket) {
   if (!socket.server) return socket
 
   // Node >= v0.10.24 < v0.11 will crash with: «Assertion failed:
