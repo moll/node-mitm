@@ -388,6 +388,11 @@ describe("Mitm", function() {
         this.mitm.on("request", _.after(3, done.bind(null, null)))
       })
 
+      it("must emit socket on request in next ticks", function(done) {
+        var client = request({host: "foo"})
+        client.on("socket", done.bind(null, null))
+      })
+
       describe("when bypassed", function() {
         it("must not intercept", function(done) {
           this.mitm.on("connect", function(client) { client.bypass() })
