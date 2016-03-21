@@ -351,7 +351,7 @@ describe("Mitm", function() {
         })
       })
 
-      it("must emit request on Mitm after multiple requests", function(done){
+      it("must emit request on Mitm after multiple requests", function(done) {
         request({host: "foo"}).end()
         request({host: "foo"}).end()
         request({host: "foo"}).end()
