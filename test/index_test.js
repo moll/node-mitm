@@ -200,6 +200,16 @@ describe("Mitm", function() {
           process.nextTick(done)
         })
 
+        it("must write to client from server in the next tick", function(done) {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          var client = Net.connect({host: "foo"})
+
+          var ticked = false
+          client.once("data", function() { ticked.must.be.true(); done() })
+          server.write("Hello")
+          ticked = true
+        })
+
         it("must write to server from client", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
@@ -209,6 +219,17 @@ describe("Mitm", function() {
           process.nextTick(function() { server.read().must.equal("Hello") })
           process.nextTick(done)
         })
+
+        it("must write to server from client in the next tick", function(done) {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          var client = Net.connect({host: "foo"})
+
+          var ticked = false
+          server.once("data", function() { ticked.must.be.true(); done() })
+          client.write("Hello")
+          ticked = true
+        })
+
 
         // Writing binary strings was introduced in Node v0.11.14.
         // The test still passes for Node v0.10 and newer v0.11s, so let it be.
