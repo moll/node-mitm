@@ -103,12 +103,14 @@ describe("Mitm", function() {
         process.nextTick(done)
       })
 
-      it("must intercept 127.0.0.1", function() {
+      it("must intercept 127.0.0.1", function(done) {
         var server; this.mitm.on("connection", function(s) { server = s })
         var client = module.connect({host: "127.0.0.1"})
         server.write("Hello")
+
         client.setEncoding("utf8")
-        client.read().must.equal("Hello")
+        process.nextTick(function() { client.read().must.equal("Hello") })
+        process.nextTick(done)
       })
 
       describe("when bypassed", function() {
@@ -188,63 +190,102 @@ describe("Mitm", function() {
 
     describe("Socket", function() {
       describe(".prototype.write", function() {
-        it("must write to client from server", function() {
+        it("must write to client from server", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           server.write("Hello")
+
           client.setEncoding("utf8")
-          client.read().must.equal("Hello")
+          process.nextTick(function() { client.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
-        it("must write to server from client", function() {
+        it("must write to client from server in the next tick", function(done) {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          var client = Net.connect({host: "foo"})
+
+          var ticked = false
+          client.once("data", function() { ticked.must.be.true(); done() })
+          server.write("Hello")
+          ticked = true
+        })
+
+        it("must write to server from client", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello")
+
           server.setEncoding("utf8")
-          server.read().must.equal("Hello")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
+
+        it("must write to server from client in the next tick", function(done) {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          var client = Net.connect({host: "foo"})
+
+          var ticked = false
+          server.once("data", function() { ticked.must.be.true(); done() })
+          client.write("Hello")
+          ticked = true
+        })
+
 
         // Writing binary strings was introduced in Node v0.11.14.
         // The test still passes for Node v0.10 and newer v0.11s, so let it be.
-        it("must write to server from client given binary", function() {
+        it("must write to server from client given binary", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "binary")
+
           server.setEncoding("binary")
-          server.read().must.equal("Hello")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
-        it("must write to server from client given a buffer", function() {
+        it("must write to server from client given a buffer", function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write(new Buffer("Hello"))
+
           server.setEncoding("utf8")
-          server.read().must.equal("Hello")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
-        it("must write to server from client given a UTF-8 string", function() {
+        it("must write to server from client given a UTF-8 string",
+          function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "utf8")
+
           server.setEncoding("utf8")
-          server.read().must.equal("Hello")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
-        it("must write to server from client given a ASCII string", function() {
+        it("must write to server from client given a ASCII string",
+          function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "ascii")
+
           server.setEncoding("utf8")
-          server.read().must.equal("Hello")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
         })
 
         it("must write to server from client given a UCS-2 string",
-          function() {
+          function(done) {
           var server; this.mitm.on("connection", function(s) { server = s })
           var client = Net.connect({host: "foo"})
           client.write("Hello", "ucs2")
-          server.setEncoding("ucs2")
-          server.read().must.equal("H\u0000e\u0000l\u0000l\u0000o\u0000")
+
+          process.nextTick(function() {
+            server.setEncoding("ucs2")
+            server.read().must.equal("H\u0000e\u0000l\u0000l\u0000o\u0000")
+            done()
+          })
         })
       })
 
