@@ -1,4 +1,4 @@
-## Unreleased
+## 1.2.1 (Mar 30, 2016)
 - Fixes writing to sockets returned by Mitm by postponing writing until the next
   tick. Brings it in line with Node's behavior.  
   Thanks, [Maarten Winter](https://github.com/mwoc), for the help!
