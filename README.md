@@ -195,7 +195,7 @@ so selectively, `connect` is given the `options` object that was given to
 
 ```javascript
 mitm.on("connect", function(socket, opts) {
-  if (opts.host == "sql.example.org" && opts.port = 5432) socket.bypass()
+  if (opts.host == "sql.example.org" && opts.port == 5432) socket.bypass()
 })
 ```
 
