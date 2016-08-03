@@ -79,6 +79,11 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
   var server = client.server = new Socket({handle: sockets[1]})
   this.emit("connection", server, opts)
 
+  // Make the client socket and the connect options available via a "private"
+  // property of the server socket so they can be paired up with requests in
+  // a reliable way:
+  server._mitm = {client: client, opts: opts};
+
   // Ensure connect is emitted in next ticks, otherwise it would be impossible
   // to listen to it after calling Net.connect or listening to it after the
   // ClientRequest emits "socket".
