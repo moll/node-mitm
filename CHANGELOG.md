@@ -1,3 +1,7 @@
+## Unreleased
+- Adds compatibility with Node v6.4.
+  Thanks to [Andreas Lind](https://github.com/papandreou)!
+
 ## 1.2.1 (Mar 30, 2016)
 - Fixes writing to sockets returned by Mitm by postponing writing until the next
   tick. Brings it in line with Node's behavior.  

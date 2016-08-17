@@ -4,12 +4,13 @@ var Net = require("net")
 var Tls = require("tls")
 var Http = require("http")
 var Https = require("https")
+var Semver = require("semver")
 var IncomingMessage = Http.IncomingMessage
 var ServerResponse = Http.ServerResponse
 var ClientRequest = Http.ClientRequest
 var EventEmitter = require("events").EventEmitter
 var Mitm = require("..")
-var NODE_0_10 = !!process.version.match(/^v0\.10\./)
+var NODE_0_10 = Semver.satisfies(process.version, ">= 0.10 < 0.11")
 
 describe("Mitm", function() {
   beforeEach(function() { Mitm.passthrough = false })
@@ -233,7 +234,6 @@ describe("Mitm", function() {
           ticked = true
         })
 
-
         // Writing binary strings was introduced in Node v0.11.14.
         // The test still passes for Node v0.10 and newer v0.11s, so let it be.
         it("must write to server from client given binary", function(done) {
@@ -242,6 +242,19 @@ describe("Mitm", function() {
           client.write("Hello", "binary")
 
           server.setEncoding("binary")
+          process.nextTick(function() { server.read().must.equal("Hello") })
+          process.nextTick(done)
+        })
+
+        // Writing latin1 strings was introduced in v6.4.
+        // https://github.com/nodejs/node/commit/28071a130e2137bd14d0762a25f0ad83b7a28259
+        if (Semver.satisfies(process.version, ">= 6.4"))
+        it("must write to server from client given latin1", function(done) {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          var client = Net.connect({host: "foo"})
+          client.write("Hello", "latin1")
+
+          server.setEncoding("latin1")
           process.nextTick(function() { server.read().must.equal("Hello") })
           process.nextTick(done)
         })
