@@ -1,4 +1,4 @@
-## Unreleased
+## 1.3.0 (Aug 17, 2016)
 - Adds compatibility with Node v6.4.
   Thanks to [Andreas Lind](https://github.com/papandreou)!
 
