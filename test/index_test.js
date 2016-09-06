@@ -313,6 +313,30 @@ describe("Mitm", function() {
           client.on("end", done)
         })
       })
+
+      describe(".prototype.ref", function() {
+        it("must allow calling on client", function() {
+          Net.connect({host: "foo"}).ref()
+        })
+
+        it("must allow calling on server", function() {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          Net.connect({host: "foo"})
+          server.ref()
+        })
+      })
+
+      describe(".prototype.unref", function() {
+        it("must allow calling on client", function() {
+          Net.connect({host: "foo"}).unref()
+        })
+
+        it("must allow calling on server", function() {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          Net.connect({host: "foo"})
+          server.unref()
+        })
+      })
     })
   })
 
