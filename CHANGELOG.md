@@ -1,4 +1,4 @@
-## Unreleased
+## 1.3.1 (Sep 6, 2016)
 - Fixes calling `Socket.prototype.ref` and `Socket.prototype.unref` on the returned client and server sockets.  
   Thanks, [Vincent Voyer](http://function.fr), for the help!
 
