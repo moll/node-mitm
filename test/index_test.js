@@ -412,7 +412,7 @@ describe("Mitm", function() {
     })
   })
 
-  function mustRequest(request) {
+  function mustRequest(request, module) {
     describe("as request", function() {
       beforeEach(function() { this.mitm.disable() })
       beforeEach(function() { this.mitm = Mitm() })
@@ -473,6 +473,24 @@ describe("Mitm", function() {
         this.mitm.on("request", _.after(3, done.bind(null, null)))
       })
 
+      it("must not hand out a keep-alived connection from a previous Mitm instance", function (done) {
+        var originalKeepAlive = module.globalAgent.keepAlive
+        module.globalAgent.keepAlive = true
+        request({host: "example.com"}).end()
+        this.mitm.once("request", function (req, res) {
+          var firstConnection = req.connection
+          res.end()
+          this.mitm.disable()
+          this.mitm = Mitm()
+          request({host: "example.com"}).end()
+          this.mitm.once("request", function () {
+            req.connection.must.not.be(firstConnection)
+            module.globalAgent.keepAlive = originalKeepAlive
+            done()
+          })
+        }.bind(this))
+      })
+
       it("must emit socket on request in next ticks", function(done) {
         var client = request({host: "foo"})
         client.on("socket", done.bind(null, null))
@@ -511,14 +529,14 @@ describe("Mitm", function() {
   }
 
   describe("via Http.request", function() {
-    mustRequest(Http.request)
+    mustRequest(Http.request, Http)
   })
 
   describe("via Https.request", function() {
     beforeEach(function() { this.mitm = Mitm() })
     afterEach(function() { this.mitm.disable() })
 
-    mustRequest(Https.request)
+    mustRequest(Https.request, Https)
 
     // https://github.com/moll/node-mitm/pull/25
     it("must emit secureConnect after socket event", function(done) {
@@ -533,13 +551,13 @@ describe("Mitm", function() {
   describe("via Http.Agent", function() {
     mustRequest(function(opts) {
       return Http.request(_.extend({agent: new Http.Agent}, opts))
-    })
+    }, Http)
   })
 
   describe("via Https.Agent", function() {
     mustRequest(function(opts) {
       return Https.request(_.extend({agent: new Https.Agent}, opts))
-    })
+    }, Https)
   })
 
   describe("IncomingMessage", function() {
