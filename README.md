@@ -217,6 +217,34 @@ mitm.on("connect", function(socket, opts) {
 })
 ```
 
+### Recording requests
+You can record connections listening to the `connect` event on the Mitm instance
+and then calling `record` on the given socket. To help you do
+so selectively, `connect` is given the `options` object that was given to
+`Net.connect`:
+
+```javascript
+mitm.on("connect", function(socket, opts) {
+  if (opts.host == "sql.example.org" && opts.port == 5432) socket.record()
+})
+```
+
+Recorded connections do **not** emit `connection` or `request` events but they do emit 
+a `record` event for each data event triggered to the original socket.
+
+```javascript
+ 
+mitm.on("connect", function(socket) { 
+  socket.record()
+})
+mitm.on('record', function(data) { 
+  console.log(opts,data.toString())
+})
+ 
+var socket = Net.connect(80, "example.org")
+socket.write("Hello!")
+socket.setEncoding("utf8")
+```
 
 Events
 ------
