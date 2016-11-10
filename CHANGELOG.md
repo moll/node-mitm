@@ -1,5 +1,5 @@
 ## Unreleased
-- Adds compatibility with Node v7.
+- Adds compatibility with Node v7.  
   Thanks, [Eric Hacke](https://github.com/ehacke), for the help!
 
 ## 1.3.1 (Sep 6, 2016)
