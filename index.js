@@ -10,7 +10,7 @@ var EventEmitter = require("events").EventEmitter
 var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
 var slice = Function.call.bind(Array.prototype.slice)
-var normalizeConnectArgs = Net._normalizeConnectArgs
+var normalizeConnectArgs = Net._normalizeConnectArgs || Net._normalizeArgs
 var createRequestAndResponse = Http._connectionListener
 module.exports = Mitm
 
