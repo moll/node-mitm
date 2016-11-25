@@ -74,7 +74,13 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
   var client = new Socket(_.defaults({handle: sockets[0]}, opts))
 
   this.emit("connect", client, opts)
-  if (client.bypassed) return orig.call(this, opts, done)
+  if (client.bypassed) {
+    var socket = orig.call(this, opts, done)
+    if (client.recording) {
+      socket.on('data', this.emit.bind(this, 'record', opts))
+    }
+    return socket
+  }
 
   var server = client.server = new Socket({handle: sockets[1]})
   this.emit("connection", server, opts)

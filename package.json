@@ -1,5 +1,5 @@
 {
-	"name": "mitm",
+	"name": "mitm-record",
 	"version": "1.3.2",
 	"description": "Intercept and mock outgoing network TCP connections and HTTP requests for testing. Intercepts and gives you a Net.Socket, Http.IncomingMessage and Http.ServerResponse to test and respond with. Useful when testing code that hits remote servers.",
 	"keywords": [
@@ -14,23 +14,23 @@
 		"test",
 		"webmock"
 	],
-	"homepage": "https://github.com/moll/node-mitm",
-	"bugs": "https://github.com/moll/node-mitm/issues",
+	"homepage": "https://github.com/framp/node-mitm",
+	"bugs": "https://github.com/framp/node-mitm/issues",
 
 	"author": {
-		"name": "Andri Möll",
-		"email": "andri@dot.ee",
-		"url": "http://themoll.com"
+		"name": "Federico Rampazzo",
+		"email": "frampone@gmail.com",
+		"url": "http://framp.me"
 	},
 
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/moll/node-mitm.git"
+		"url": "git://github.com/framp/node-mitm.git"
 	},
 
 	"licenses": [{
 		"type": "LAGPL",
-		"url": "https://github.com/moll/node-mitm/blob/master/LICENSE"
+		"url": "https://github.com/framp/node-mitm/blob/master/LICENSE"
 	}],
 
 	"main": "index.js",

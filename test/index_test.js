@@ -154,6 +154,69 @@ describe("Mitm", function() {
           onConnection.callCount.must.equal(0)
         })
       })
+
+      describe("when recording", function() {
+        beforeEach(function() { this.sinon = Sinon.sandbox.create() })
+        afterEach(function() { this.sinon.restore() })
+
+        it("must not intercept", function(done) {
+          this.mitm.on("connect", function(client) { client.record() })
+
+          module.connect({host: "127.0.0.1", port: 9}).on("error", function(err) {
+            err.must.be.an.instanceof(Error)
+            err.message.must.include("ECONNREFUSED")
+            done()
+          })
+        })
+
+        it("must call original module.connect", function() {
+          this.mitm.disable()
+
+          var connect = this.sinon.spy(module, "connect")
+          var mitm = Mitm()
+          mitm.on("connect", function(client) { client.record() })
+
+          try {
+            module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
+            connect.callCount.must.equal(1)
+            connect.firstCall.args[0].must.eql({host: "127.0.0.1", port: 9})
+          }
+          // Working around Mocha's context bug(s) and poor design decision
+          // with a manual `finally`.
+          finally { mitm.disable() }
+        })
+
+        it("must not call back twice on connect given callback",
+          function(done) {
+          this.mitm.on("connect", function(client) { client.record() })
+
+          var onConnect = Sinon.spy()
+          var client = module.connect({host: "127.0.0.1", port: 9}, onConnect)
+
+          client.on("error", process.nextTick.bind(null, function() {
+            onConnect.callCount.must.equal(0)
+            done()
+          }))
+        })
+
+        it("must not emit connection", function() {
+          this.mitm.on("connect", function(client) { client.record() })
+          var onConnection = Sinon.spy()
+          this.mitm.on("connection", onConnection)
+          module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
+          onConnection.callCount.must.equal(0)
+        })
+
+        it("must emit record", function() {
+          this.mitm.on("connect", function(client) { client.record() })
+          var onRecord = Sinon.spy()
+          this.mitm.on("record", onRecord)
+          var client = module.connect({host: "127.0.0.1", port: 9}).on("error", noop)
+          client.emit('data', 'Hello')
+          onRecord.callCount.must.equal(1)
+          onRecord.args[0].must.eql([{"host":"127.0.0.1","port":9},"Hello"])
+        })
+      })
     })
   }
 

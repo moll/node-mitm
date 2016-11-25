@@ -1,6 +1,11 @@
-Mitm.js
+Mitm-record.js
 =======
-[![NPM version][npm-badge]](https://www.npmjs.com/package/mitm)
+
+Fork of [node-mitm](https://github.com/moll/node-mitm) with an extra record functionality.
+
+----
+
+[![NPM version][npm-badge]](https://www.npmjs.com/package/mitm-record)
 [![Build status][travis-badge]](https://travis-ci.org/moll/node-mitm)
 
 Mitm.js is a library for Node.js (and Io.js) to **intercept and mock** outgoing
@@ -217,6 +222,34 @@ mitm.on("connect", function(socket, opts) {
 })
 ```
 
+### Recording requests
+You can record connections listening to the `connect` event on the Mitm instance
+and then calling `record` on the given socket. To help you do
+so selectively, `connect` is given the `options` object that was given to
+`Net.connect`:
+
+```javascript
+mitm.on("connect", function(socket, opts) {
+  if (opts.host == "sql.example.org" && opts.port == 5432) socket.record()
+})
+```
+
+Recorded connections do **not** emit `connection` or `request` events but they do emit 
+a `record` event for each data event triggered to the original socket.
+
+```javascript
+ 
+mitm.on("connect", function(socket) { 
+  socket.record()
+})
+mitm.on('record', function(opts, data) { 
+  console.log(opts, data.toString())
+})
+ 
+var socket = Net.connect(80, "example.org")
+socket.write("Hello!")
+socket.setEncoding("utf8")
+```
 
 Events
 ------
@@ -228,7 +261,7 @@ Event      | Description
 connect    | Emitted when a TCP connection is made.<br> Given the client side `Net.Socket` and `options` from `Net.connect`.
 connection | Emitted when a TCP connection is made.<br> Given the server side `Net.Socket` and `options` from `Net.connect`.
 request    | Emitted when a HTTP/HTTPS request is made.<br> Given the server side `Http.IncomingMessage` and `Http.ServerResponse`.
-
+record     | Emitted when a recorded connection is receiving data.<br> Given the options (or request) and the data
 
 License
 -------
