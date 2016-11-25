@@ -1,6 +1,11 @@
-Mitm.js
+Mitm-record.js
 =======
-[![NPM version][npm-badge]](https://www.npmjs.com/package/mitm)
+
+Fork of [node-mitm](https://github.com/moll/node-mitm) with an extra record functionality.
+
+----
+
+[![NPM version][npm-badge]](https://www.npmjs.com/package/mitm-record)
 [![Build status][travis-badge]](https://travis-ci.org/moll/node-mitm)
 
 Mitm.js is a library for Node.js (and Io.js) to **intercept and mock** outgoing
