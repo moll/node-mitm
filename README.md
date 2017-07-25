@@ -225,8 +225,8 @@ Mitm.js](#using) for examples):
 
 Event      | Description
 -----------|------------
-connect    | Emitted when a TCP connection is made.<br> Given the client side `Net.Socket` and `options` from `Net.connect`.
-connection | Emitted when a TCP connection is made.<br> Given the server side `Net.Socket` and `options` from `Net.connect`.
+connect    | Emitted when a TCP connection is made.<br> Given the **client side** `Net.Socket` and `options` from `Net.connect`.
+connection | Emitted when a TCP connection is made.<br> Given the **server side** `Net.Socket` and `options` from `Net.connect`.
 request    | Emitted when a HTTP/HTTPS request is made.<br> Given the server side `Http.IncomingMessage` and `Http.ServerResponse`.
 
 
