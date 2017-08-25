@@ -25,7 +25,7 @@ please fling me an [email][email], a [tweet][twitter] or [create an
 issue][issues] on GitHub.
 
 [npm-badge]: https://img.shields.io/npm/v/mitm.svg
-[travis-badge]: https://travis-ci.org/moll/node-mitm.png?branch=master
+[travis-badge]: https://travis-ci.org/moll/node-mitm.svg?branch=master
 
 ### Tour
 - Intercept both **TCP socket connections** (`Net.connect`) and **HTTP
