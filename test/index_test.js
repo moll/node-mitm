@@ -536,6 +536,27 @@ describe("Mitm", function() {
     mustRequest(function(opts) {
       return Http.request(_.extend({agent: new Http.Agent}, opts))
     })
+
+    it("must support keep-alive", function(done) {
+      var client = Http.request({
+        host: "foo",
+        agent: new Http.Agent({keepAlive: true})
+      })
+
+      client.end()
+
+      this.mitm.on("request", function(_req, res) {
+        res.setHeader("Connection", "keep-alive")
+        res.end()
+      })
+
+      // Just waiting for response is too early to trigger:
+      // TypeError: socket._handle.getAsyncId is not a function in _http_client.
+      client.on("response", function(res) {
+        res.on("data", noop)
+        res.on("end", done)
+      })
+    })
   })
 
   describe("via Https.Agent", function() {
