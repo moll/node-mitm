@@ -414,10 +414,6 @@ describe("Mitm", function() {
 
   function mustRequest(request) {
     describe("as request", function() {
-      beforeEach(function() { this.mitm.disable() })
-      beforeEach(function() { this.mitm = Mitm() })
-      afterEach(function() { this.mitm.disable() })
-
       it("must return ClientRequest", function() {
         request({host: "foo"}).must.be.an.instanceof(ClientRequest)
       })
@@ -511,6 +507,9 @@ describe("Mitm", function() {
   }
 
   describe("via Http.request", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
     mustRequest(Http.request)
   })
 
@@ -531,12 +530,18 @@ describe("Mitm", function() {
   })
 
   describe("via Http.Agent", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
     mustRequest(function(opts) {
       return Http.request(_.extend({agent: new Http.Agent}, opts))
     })
   })
 
   describe("via Https.Agent", function() {
+    beforeEach(function() { this.mitm = Mitm() })
+    afterEach(function() { this.mitm.disable() })
+
     mustRequest(function(opts) {
       return Https.request(_.extend({agent: new Https.Agent}, opts))
     })
