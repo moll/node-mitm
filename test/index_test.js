@@ -5,6 +5,7 @@ var Tls = require("tls")
 var Http = require("http")
 var Https = require("https")
 var Semver = require("semver")
+var Transform = require("stream").Transform
 var IncomingMessage = Http.IncomingMessage
 var ServerResponse = Http.ServerResponse
 var ClientRequest = Http.ClientRequest
@@ -335,6 +336,23 @@ describe("Mitm", function() {
           var server; this.mitm.on("connection", function(s) { server = s })
           Net.connect({host: "foo"})
           server.unref()
+        })
+      })
+
+      describe(".prototype.pipe", function() {
+        // To confirm https://github.com/moll/node-mitm/issues/47 won't become
+        // an issue.
+        it("must allow piping to itself", function(done) {
+          this.mitm.on("connection", function(server) {
+            server.pipe(new Upcase).pipe(server)
+          })
+
+          var client = Net.connect({host: "foo"})
+          client.write("Hello")
+
+          client.setEncoding("utf8")
+          client.on("data", function(data) { data.must.equal("HELLO") })
+          client.on("data", done.bind(null, null))
         })
       })
     })
@@ -686,5 +704,15 @@ describe("Mitm", function() {
     })
   })
 })
+
+function Upcase() { Transform.call(this, arguments) }
+
+Upcase.prototype = Object.create(Transform.prototype, {
+  constructor: {value: Upcase, configurable: true, writeable: true}
+})
+
+Upcase.prototype._transform = function(chunk, _enc, done) {
+  done(null, String(chunk).toUpperCase())
+}
 
 function noop() {}
