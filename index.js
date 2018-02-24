@@ -43,8 +43,10 @@ if (NODE_GTE_9_6_0) {
   var _httpIncoming = require('_http_incoming')
   var kIncomingMessage = require('_http_common').kIncomingMessage
 
-  Socket.prototype[kIncomingMessage] = Mitm.prototype[kIncomingMessage] =
-    _httpIncoming.IncomingMessage
+  TlsSocket.prototype[kIncomingMessage] =
+    Socket.prototype[kIncomingMessage] =
+    Mitm.prototype[kIncomingMessage] =
+      _httpIncoming.IncomingMessage
 
   Mitm.prototype[_httpServer.kServerResponse] = _httpServer.ServerResponse
 }
