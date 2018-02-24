@@ -95,7 +95,6 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
   if (client.bypassed) return orig.call(this, opts, done)
 
   var server = client.server = new Socket({handle: sockets[1]})
-
   this.emit("connection", server, opts)
 
   // Ensure connect is emitted in next ticks, otherwise it would be impossible
