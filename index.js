@@ -31,7 +31,12 @@ Mitm.prototype.addListener = EventEmitter.prototype.addListener
 Mitm.prototype.removeListener = EventEmitter.prototype.removeListener
 Mitm.prototype.emit = EventEmitter.prototype.emit
 
-var NODE_0_10 = !!process.version.match(/^v0\.10\./)
+var versionDigits = process.version.replace(/^v/, '').split('.').map(function(str) {
+  return parseInt(str, 10);
+})
+var NODE_0_10 = versionDigits[0] === 0 && versionDigits[1] === 10
+var NODE_GTE_9_6_0 =
+  (versionDigits[0] === 9 && versionDigits[1] >= 6) || versionDigits[0] > 9
 
 Mitm.prototype.enable = function() {
   // Connect is called synchronously.
@@ -77,6 +82,17 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
   if (client.bypassed) return orig.call(this, opts, done)
 
   var server = client.server = new Socket({handle: sockets[1]})
+
+  if (NODE_GTE_9_6_0) {
+    var _httpServer = require('_http_server')
+    var _httpIncoming = require('_http_incoming')
+    var kIncomingMessage = require('_http_common').kIncomingMessage
+    server[kIncomingMessage] = this[kIncomingMessage] =
+      _httpIncoming.IncomingMessage
+
+    this[_httpServer.kServerResponse] = _httpServer.ServerResponse
+  }
+
   this.emit("connection", server, opts)
 
   // Ensure connect is emitted in next ticks, otherwise it would be impossible
