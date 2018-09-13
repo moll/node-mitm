@@ -355,6 +355,17 @@ describe("Mitm", function() {
           client.on("data", done.bind(null, null))
         })
       })
+
+      // Bug report from Io.js v3 days:
+      // https://github.com/moll/node-mitm/issues/26
+      describe(".prototype.destroy", function() {
+        it("must emit end when destroyed on server", function(done) {
+          var server; this.mitm.on("connection", function(s) { server = s })
+          var client = Net.connect({host: "foo"})
+          server.destroy()
+          client.on("end", done)
+        })
+      })
     })
   })
 
