@@ -16,8 +16,7 @@ various responses to your code without ever having to hit the real network.
 **Fast as hell** and **a lot easier to develop with than external test
 servers**.
 
-Mitm.js should work both on the stable Node **v0.10.24** and up and **v0.11.11**
-and up and has **automated tests** to ensure it will stay that way.
+Mitm.js works on all Node versions: ancient **v0.10**, **v0.11** and **v0.12** versions, previous and current LTS versions like **v4**, **v6** and **v8** and fresh **v10** and beyond. For all it has **automated tests** to ensure it will stay that way.
 
 I've developed Mitm.js on a need-to basis for testing [Monday
 Calendar][monday]'s syncing, so if you find a use-case I haven't come across,
