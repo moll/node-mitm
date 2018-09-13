@@ -9,9 +9,11 @@ var TlsSocket = require("./lib/tls_socket")
 var EventEmitter = require("events").EventEmitter
 var InternalSocket = require("./lib/internal_socket")
 var Stubs = require("./lib/stubs")
+var Semver = require("semver")
 var slice = Function.call.bind(Array.prototype.slice)
 var normalizeConnectArgs = Net._normalizeConnectArgs || Net._normalizeArgs
 var createRequestAndResponse = Http._connectionListener
+var NODE_0_10 = Semver.satisfies(process.version, ">= 0.10 < 0.11")
 module.exports = Mitm
 
 function Mitm() {
@@ -31,24 +33,13 @@ Mitm.prototype.addListener = EventEmitter.prototype.addListener
 Mitm.prototype.removeListener = EventEmitter.prototype.removeListener
 Mitm.prototype.emit = EventEmitter.prototype.emit
 
-var versionDigits = process.version.replace(/^v/, '').split('.').map(function(str) {
-  return parseInt(str, 10);
-})
-var NODE_0_10 = versionDigits[0] === 0 && versionDigits[1] === 10
-var NODE_GTE_9_6_0 =
-  (versionDigits[0] === 9 && versionDigits[1] >= 6) || versionDigits[0] > 9
-
-if (NODE_GTE_9_6_0) {
-  var _httpServer = require('_http_server')
-  var _httpIncoming = require('_http_incoming')
-  var kIncomingMessage = require('_http_common').kIncomingMessage
-
-  TlsSocket.prototype[kIncomingMessage] =
-    Socket.prototype[kIncomingMessage] =
-    Mitm.prototype[kIncomingMessage] =
-      _httpIncoming.IncomingMessage
-
-  Mitm.prototype[_httpServer.kServerResponse] = _httpServer.ServerResponse
+if (Semver.satisfies(process.version, "^8.12 || >= 9.6")) {
+  var IncomingMessage = require("_http_incoming").IncomingMessage
+  var ServerResponse = require("_http_server").ServerResponse
+  var incomingMessageKey = require("_http_common").kIncomingMessage
+  var serverResponseKey = require("_http_server").kServerResponse
+  Mitm.prototype[serverResponseKey] = ServerResponse
+  Mitm.prototype[incomingMessageKey] = IncomingMessage
 }
 
 Mitm.prototype.enable = function() {
@@ -89,12 +80,32 @@ Mitm.prototype.disable = function() {
 
 Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
   var sockets = InternalSocket.pair()
-  var client = new Socket(_.defaults({handle: sockets[0]}, opts))
+
+  // Don't set client.connecting to false because there's nothing setting it
+  // back to false later. Originally that was done in Socket.prototype.connect
+  // and its afterConnect handler, but we're not calling that.
+  var client = new Socket(_.defaults({
+    handle: sockets[0],
+
+    // Node v10 expects readable and writable to be set at Socket creation time.
+    readable: true,
+    writable: true
+  }, opts))
 
   this.emit("connect", client, opts)
   if (client.bypassed) return orig.call(this, opts, done)
 
-  var server = client.server = new Socket({handle: sockets[1]})
+  // Don't use just "server" because socket.server is used in Node v8.12 and
+  // Node v9.6 and later for modifying the HTTP server response and parser
+  // classes. If unset, it's set to the used HTTP server (Mitm instance in our
+  // case) in _http_server.js.
+  // See also: https://github.com/nodejs/node/issues/13435.
+  var server = client.serverSocket = new Socket({
+    handle: sockets[1],
+    readable: true,
+    writable: true
+  })
+
   this.emit("connection", server, opts)
 
   // Ensure connect is emitted in next ticks, otherwise it would be impossible
@@ -113,7 +124,7 @@ Mitm.prototype.tcpConnect = function(orig, opts, done) {
   // The callback is originally bound to the connect event in
   // Socket.prototype.connect.
   var client = this.connect(orig, Socket, opts, done)
-  if (client.server == null) return client
+  if (client.serverSocket == null) return client
   if (done) client.once("connect", done)
 
   return client
@@ -124,7 +135,7 @@ Mitm.prototype.tlsConnect = function(orig, opts, done) {
   opts = args[0]; done = args[1]
 
   var client = this.connect(orig, TlsSocket, opts, done)
-  if (client.server == null) return client
+  if (client.serverSocket == null) return client
   if (done) client.once("secureConnect", done)
 
   setTimeout(client.emit.bind(client, "secureConnect"))
@@ -133,7 +144,7 @@ Mitm.prototype.tlsConnect = function(orig, opts, done) {
 }
 
 Mitm.prototype.request = function request(socket) {
-  if (!socket.server) return socket
+  if (!socket.serverSocket) return socket
 
   // Node >= v0.10.24 < v0.11 will crash with: «Assertion failed:
   // (!current_buffer), function Execute, file ../src/node_http_parser.cc, line
@@ -145,7 +156,7 @@ Mitm.prototype.request = function request(socket) {
     self.emit = _.compose(process.nextTick, Function.bind.bind(this.emit, this))
   }
 
-  createRequestAndResponse.call(self, socket.server)
+  createRequestAndResponse.call(self, socket.serverSocket)
   return socket
 }
 

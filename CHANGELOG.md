@@ -1,3 +1,7 @@
+## Unreleased
+- Adds Node v8.12, Node v9 and Node v10 support.  
+  Thanks to [Andreas Lind](https://github.com/papandreou) for help in debugging! Also thanks to him for providing [mitm-papandreou](https://www.npmjs.com/package/mitm-papandreou) while Mitm.js-proper incorporated his fixes.
+
 ## 1.3.3 (Sep 16, 2017)
 - Fixes `getAsyncId` error on Node v8 when using an `Http.Agent` with the `keepAlive` option.
 
