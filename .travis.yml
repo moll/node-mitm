@@ -27,7 +27,7 @@ node_js:
   - "8"
   - "9.5"
 
-  # v9.5 revamped parts of HTTP parsing just like v8.12.
+  # v9.6 revamped parts of HTTP parsing just like v8.12.
   - "9.6"
   - "9"
   - "10.0.0"
