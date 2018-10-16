@@ -48,7 +48,7 @@ issue][issues] on GitHub.
   var socket = Net.connect(22, "example.org")
   socket.write("Hello!")
   socket.setEncoding("utf8")
-  socket.read() // => "Hello back!"
+  socket.on("data", console.log) // => "Hello back!"
   ```
 
 - When you do **HTTP or HTTPS** requests, Mitm.js gives you both
@@ -149,7 +149,7 @@ mitm.on("connection", function(socket) { socket.write("Hello back!") })
 var socket = Net.connect(22, "example.org")
 socket.write("Hello!")
 socket.setEncoding("utf8")
-socket.read() // => "Hello back!"
+socket.on("data", console.log) // => "Hello back!"
 ```
 
 ### Intercepting HTTP/HTTPS requests
