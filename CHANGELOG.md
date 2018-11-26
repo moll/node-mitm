@@ -1,5 +1,6 @@
 ## Unreleased
 - Adds compatibility with Node v11.1.
+- Adds compatibility with Node v11.2.
 
 ## 1.4.0 (Sep 17, 2018)
 - Adds Node v8.12, Node v9 and Node v10 support.  

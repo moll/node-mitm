@@ -37,6 +37,9 @@ node_js:
   # v11.1 changed onStreamRead in stream_base_commons.js to get the byte count
   # through a global structure.
   - "11.1"
+
+  # v11.2 requires InternalSocket.prototype.shutdown.
+  - "11.2"
   - "11"
 
   # IO.js required TlsSocket.prototype.getSession.
