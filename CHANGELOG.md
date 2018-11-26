@@ -1,3 +1,6 @@
+## Unreleased
+- Adds compatibility with Node v11.1.
+
 ## 1.4.0 (Sep 17, 2018)
 - Adds Node v8.12, Node v9 and Node v10 support.  
   Thanks to [Andreas Lind](https://github.com/papandreou) for help in debugging! Also thanks to him for providing [mitm-papandreou](https://www.npmjs.com/package/mitm-papandreou) while Mitm.js-proper incorporated his fixes.
