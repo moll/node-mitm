@@ -33,6 +33,8 @@ node_js:
   - "10.0.0"
   - "10"
 
+  - "11"
+
   # IO.js required TlsSocket.prototype.getSession.
   - "iojs"
   - "iojs-v2.4.0"
