@@ -1,3 +1,6 @@
+## Unreleased
+- Adds compatibility with Node v11.8.
+
 ## 1.5.0 (Nov 29, 2018)
 - Adds compatibility with Node v11.1.
 - Adds compatibility with Node v11.2.
