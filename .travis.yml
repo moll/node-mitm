@@ -32,7 +32,13 @@ node_js:
   # v9.6 revamped parts of HTTP parsing just like v8.12.
   - "9.6.0"
   - "9"
+
+  # Node v10 requires InternalSocket.prototype.writev.
   - "10.0.0"
+  - "10.15.0"
+
+  # Node v10.15.1 requires InternalSocket.prototype.shutdown.
+  - "10.15.1"
   - "10"
   - "11.0"
 
