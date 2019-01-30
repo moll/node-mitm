@@ -11,24 +11,26 @@ node_js:
   - "0.12"
   - "4"
   - "5"
-  - "6.0"
+  - "6.0.0"
   - "6.3"
 
   # v6.4 introduced writing latin1 strings.
-  - "6.4"
+  - "6.4.0"
   - "6"
 
   # v7 changed the internal _normalizeConnectArgs's function name.
+  - "7.0.0"
   - "7"
+  - "11.8"
   - "8.11"
 
   # v8.12 revamped parts of HTTP parsing.
-  - "8.12"
+  - "8.12.0"
   - "8"
   - "9.5"
 
   # v9.6 revamped parts of HTTP parsing just like v8.12.
-  - "9.6"
+  - "9.6.0"
   - "9"
   - "10.0.0"
   - "10"
@@ -36,10 +38,14 @@ node_js:
 
   # v11.1 changed onStreamRead in stream_base_commons.js to get the byte count
   # through a global structure.
-  - "11.1"
+  - "11.1.0"
 
   # v11.2 requires InternalSocket.prototype.shutdown.
-  - "11.2"
+  - "11.2.0"
+  - "11.7"
+
+  # v11.8 requires InternalSocket.prototype.shutdown to return "0".
+  - "11.8.0"
   - "11"
 
   # IO.js required TlsSocket.prototype.getSession.
