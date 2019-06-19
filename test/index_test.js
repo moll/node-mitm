@@ -267,7 +267,7 @@ describe("Mitm", function() {
           client.write(newBuffer("Hello", "binary"))
 
           process.nextTick(function() {
-            server.read().equals(newBuffer("Hello", "binary")).must.be.true()
+            assertBuffers(server.read(), newBuffer("Hello", "binary"))
             done()
           })
         })
@@ -279,7 +279,7 @@ describe("Mitm", function() {
           client.write("Hello", "utf8")
 
           process.nextTick(function() {
-            server.read().equals(newBuffer("Hello", "binary")).must.be.true()
+            assertBuffers(server.read(), newBuffer("Hello", "binary"))
             done()
           })
         })
@@ -291,7 +291,7 @@ describe("Mitm", function() {
           client.write("Hello", "ascii")
 
           process.nextTick(function() {
-            server.read().equals(newBuffer("Hello", "binary")).must.be.true()
+            assertBuffers(server.read(), newBuffer("Hello", "binary"))
             done()
           })
         })
@@ -303,9 +303,10 @@ describe("Mitm", function() {
           client.write("Hello", "ucs2")
 
           process.nextTick(function() {
-            server.read().equals(
+            assertBuffers(
+              server.read(),
               newBuffer("H\u0000e\u0000l\u0000l\u0000o\u0000", "binary")
-            ).must.be.true()
+            )
 
             done()
           })
@@ -730,6 +731,11 @@ Upcase.prototype = Object.create(Transform.prototype, {
 
 Upcase.prototype._transform = function(chunk, _enc, done) {
   done(null, String(chunk).toUpperCase())
+}
+
+function assertBuffers(a, b) {
+  if (a.equals) a.equals(b).must.be.true()
+  else a.toString("utf8").must.equal(b.toString("utf8"))
 }
 
 function noop() {}
