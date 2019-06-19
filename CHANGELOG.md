@@ -1,3 +1,6 @@
+## Unreleased
+- Fixes one test for Node v12.4.
+
 ## 1.7.0 (Jan 30, 2019)
 - Adds compatibility with Node v10.15.1.
 

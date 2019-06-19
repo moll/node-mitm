@@ -40,7 +40,7 @@ node_js:
   # Node v10.15.1 requires InternalSocket.prototype.shutdown.
   - "10.15.1"
   - "10"
-  - "11.0"
+  - "11.0.0"
 
   # v11.1 changed onStreamRead in stream_base_commons.js to get the byte count
   # through a global structure.
@@ -53,6 +53,13 @@ node_js:
   # v11.8 requires InternalSocket.prototype.shutdown to return "0".
   - "11.8.0"
   - "11"
+  - "12.0.0"
+  - "12.3"
+
+  # v12.4 changed decoding the server response buffer to UCS-2 by no longer
+  # returning a string with 2 little-endian bytes in a String.
+  # Then again, this could be https://github.com/nodejs/node/pull/27936.
+  - "12.4"
   - "12"
 
   # IO.js required TlsSocket.prototype.getSession.
