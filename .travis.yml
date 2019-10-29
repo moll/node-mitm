@@ -61,6 +61,7 @@ node_js:
   # Then again, this could be https://github.com/nodejs/node/pull/27936.
   - "12.4"
   - "12"
+  - "13"
 
   # IO.js required TlsSocket.prototype.getSession.
   - "iojs"
