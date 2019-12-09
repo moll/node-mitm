@@ -186,6 +186,9 @@ That's to save us from having to set up certificates and disable their
 verification. But if you do need to test this, please ping me and we'll see if
 we can get Mitm.js to support that.
 
+#### Custom HTTP Methods
+Unfortunately because [Node.js's web server doesn't seem to support custom HTTP methods](https://github.com/nodejs/node-v0.x-archive/issues/3192) (that is, ones beyond `require("http").METHODS`), Mitm.js doesn't support them out of the box either. The Node.js HTTP parser throws an error given a request with an unsupported method. However, as Mitm.js also supports intercepting at the TCP level, you could hook in your own HTTP parser. I've briefly alluded to it in [issue #63](https://github.com/moll/node-mitm/issues/63).
+
 ### Bypassing interception
 You can bypass connections listening to the `connect` event on the Mitm instance
 and then calling `bypass` on the given socket. To help you do
