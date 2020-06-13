@@ -62,6 +62,7 @@ node_js:
   - "12.4"
   - "12"
   - "13"
+  - "14"
 
   # IO.js required TlsSocket.prototype.getSession.
   - "iojs"
