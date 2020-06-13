@@ -94,6 +94,24 @@ describe("Mitm", function() {
         module.connect(80, "localhost", done.bind(null, null))
       })
 
+      // The "close" event broke on Node v12.16.3 as the
+      // InternalSocket.prototype.close method didn't call back if
+      // the WritableStream had already been closed.
+      it("must emit close on socket if ended immediately", function(done) {
+        this.mitm.on("connection", function(socket) { socket.end() })
+        var socket = module.connect({host: "foo"})
+        socket.on("close", done.bind(null, null))
+      })
+
+      it("must emit close on socket if ended in next tick", function(done) {
+        this.mitm.on("connection", function(socket) {
+          process.nextTick(socket.end.bind(socket))
+        })
+
+        var socket = module.connect({host: "foo"})
+        socket.on("close", done.bind(null, null))
+      })
+
       it("must intercept 127.0.0.1", function(done) {
         var server; this.mitm.on("connection", function(s) { server = s })
         var client = module.connect({host: "127.0.0.1"})

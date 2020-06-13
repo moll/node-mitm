@@ -1,5 +1,6 @@
 ## Unreleased
 - Fixes one test for Node v12.4.
+- Fixes the socket "close" event on Node v12.16.3.
 
 ## 1.7.0 (Jan 30, 2019)
 - Adds compatibility with Node v10.15.1.

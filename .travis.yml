@@ -60,6 +60,12 @@ node_js:
   # returning a string with 2 little-endian bytes in a String.
   # Then again, this could be https://github.com/nodejs/node/pull/27936.
   - "12.4"
+  - "12.16.2"
+
+  # v12.16.3 changed something in InternalSocket.prototype.shutdown or possibly
+  # WritableStream.prototype.end causing the "close" event to not be emitted.
+  # https://github.com/moll/node-mitm/issues/66
+  - "12.16.3"
   - "12"
   - "13"
   - "14"
