@@ -1,4 +1,5 @@
 language: node_js
+
 node_js:
   - "node"
   - "0.10"
@@ -74,6 +75,13 @@ node_js:
   - "iojs"
   - "iojs-v2.4.0"
   - "iojs-v3.2.0"
+
+# NPM < v3.10.10 fails with "Error: Missing required argument #1" in
+# npm/lib/fetch-package-metadata.js:31:3.
+before_install: >
+  if [[ "$(npm --version)" = 3.* ]] && [[ "$(npm --version)" != 3.10.10 ]]; then
+    npm install --global npm@3
+  fi
 
 notifications:
   email: ["andri@dot.ee"]
