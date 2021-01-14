@@ -29,7 +29,7 @@
 	},
 
 	"licenses": [{
-		"type": "LAGPL",
+		"type": "AGPL-3.0-or-later",
 		"url": "https://github.com/moll/node-mitm/blob/master/LICENSE"
 	}],
 
