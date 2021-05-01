@@ -1,3 +1,7 @@
+## Unreleased
+- Increases the upper-bound on [Underscore.js](https://underscorejs.org) dependency to v1.13 (inclusive).  
+  Thanks, [Martin Caruso](https://github.com/mcaruso85), for the heads-up.
+
 ## 1.7.1 (Jun 13, 2020)
 - Fixes one test for Node v12.4.
 - Fixes the socket "close" event on Node v12.16.3.
