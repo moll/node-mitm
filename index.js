@@ -108,15 +108,13 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
 
   this.emit("connection", server, opts)
 
-  if (client.rejected) {
-    const connectionRefusedError = new Error()
-    connectionRefusedError.address = "127.0.0.1"
-    connectionRefusedError.code = "ECONNREFUSED"
-    connectionRefusedError.errno = -4078
-    connectionRefusedError.port = 9090
-    connectionRefusedError.syscall = "connect"
-    setTimeout(client.emit.bind(client, "error", connectionRefusedError))
-    setTimeout(client.emit.bind(client, "close", true))
+  if (client.closed) {
+    if (client.error) {
+      setTimeout(client.emit.bind(client, "error", client.error))
+      setTimeout(client.emit.bind(client, "close", true))
+    } else {
+      setTimeout(client.emit.bind(client, "close", false))
+    }
   } else {
     // Ensure connect is emitted in next ticks, otherwise it would be impossible
     // to listen to it after calling Net.connect or listening to it after the
