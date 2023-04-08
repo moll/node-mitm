@@ -32,6 +32,7 @@ Mitm.prototype.off = EventEmitter.prototype.removeListener
 Mitm.prototype.addListener = EventEmitter.prototype.addListener
 Mitm.prototype.removeListener = EventEmitter.prototype.removeListener
 Mitm.prototype.emit = EventEmitter.prototype.emit
+Mitm.prototype.listenerCount = EventEmitter.prototype.listenerCount
 
 if (Semver.satisfies(process.version, "^8.12 || >= 9.6")) {
   var IncomingMessage = require("_http_incoming").IncomingMessage
