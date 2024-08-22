@@ -728,15 +728,19 @@ describe("Mitm", function() {
     })
   })
 
-  describe(".prototype.addListener", function() {
-    it("must be an alias to EventEmitter.prototype.addListener", function() {
-      Mitm.prototype.addListener.must.equal(EventEmitter.prototype.addListener)
-    })
-  })
-
-  describe(".prototype.off", function() {
-    it("must be an alias to EventEmitter.prototype.removeListener", function() {
-      Mitm.prototype.off.must.equal(EventEmitter.prototype.removeListener)
+  _.each({
+    on: EventEmitter.prototype.on,
+    once: EventEmitter.prototype.once,
+    off: EventEmitter.prototype.removeListener,
+    addListener: EventEmitter.prototype.addListener,
+    removeListener: EventEmitter.prototype.removeListener,
+    emit: EventEmitter.prototype.emit
+  }, function(to, from) {
+    describe(".prototype." + from, function() {
+      it("must be an alias to EventEmitter.prototype", function() {
+        Mitm.prototype.must.have.property(from, to)
+        Mitm.prototype[from].must.be.a.function()
+      })
     })
   })
 })
