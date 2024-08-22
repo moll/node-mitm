@@ -1,7 +1,7 @@
 Mitm.js
 =======
 [![NPM version][npm-badge]](https://www.npmjs.com/package/mitm)
-[![Build status][travis-badge]](https://travis-ci.org/moll/node-mitm)
+[![Build status][build-badge]](https://github.com/moll/node-mitm/actions/workflows/node.yaml)
 
 Mitm.js is a library for Node.js (and Io.js) to **intercept and mock** outgoing
 network **TCP** and **HTTP** connections.  Mitm.js intercepts and gives you
@@ -16,7 +16,7 @@ various responses to your code without ever having to hit the real network.
 **Fast as hell** and **a lot easier to develop with than external test
 servers**.
 
-Mitm.js works on all Node versions: ancient **v0.10**, **v0.11** and **v0.12** versions, previous and current LTS versions like **v4** to **v12** and the newest **v13** and beyond. For all it has **automated tests** to ensure it will stay that way.
+Mitm.js works on all Node versions: ancient **v0.10**, **v0.11** and **v0.12** versions, previous and current LTS versions like **v4** to **v12** and the newest **v22** and beyond. For all it has **automated tests** to ensure it will stay that way.
 
 I've developed Mitm.js on a need-to basis for testing [Monday
 Calendar][monday]'s syncing, so if you find a use-case I haven't come across,
@@ -24,7 +24,7 @@ please fling me an [email][email], a [tweet][twitter] or [create an
 issue][issues] on GitHub.
 
 [npm-badge]: https://img.shields.io/npm/v/mitm.svg
-[travis-badge]: https://travis-ci.org/moll/node-mitm.svg?branch=master
+[build-badge]: https://github.com/moll/js-j6pack/actions/workflows/node.yaml/badge.svg
 
 ### Tour
 - Intercept both **TCP socket connections** (`Net.connect`) and **HTTP
