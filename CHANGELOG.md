@@ -1,5 +1,6 @@
 ## Unreleased
 - Removes the [Underscore.js](https://underscorejs.org) dependency in favor of just inlining two rewritten helper functions.
+- Fixes possible double emitting on Node v19+ due to its global HTTP agent enabling keep-alive.
 
 ## 1.7.2 (May 1, 2021)
 - Increases the upper-bound on [Underscore.js](https://underscorejs.org) dependency to v1.13 (inclusive).  
