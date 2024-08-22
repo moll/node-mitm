@@ -1,3 +1,6 @@
+## Unreleased
+- Removes the [Underscore.js](https://underscorejs.org) dependency in favor of just inlining two rewritten helper functions.
+
 ## 1.7.2 (May 1, 2021)
 - Increases the upper-bound on [Underscore.js](https://underscorejs.org) dependency to v1.13 (inclusive).  
   Thanks, [Martin Caruso](https://github.com/mcaruso85), for the heads-up.
