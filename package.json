@@ -28,11 +28,7 @@
 		"url": "git://github.com/moll/node-mitm.git"
 	},
 
-	"licenses": [{
-		"type": "LAGPL",
-		"url": "https://github.com/moll/node-mitm/blob/master/LICENSE"
-	}],
-
+	"license": "AGPL-3.0-or-later WITH GPL-3.0-linking-exception",
 	"main": "index.js",
 	"scripts": {"test": "make test"},
 
