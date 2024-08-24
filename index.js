@@ -13,7 +13,6 @@ var slice = Function.call.bind(Array.prototype.slice)
 var normalizeConnectArgs = Net._normalizeConnectArgs || Net._normalizeArgs
 var createRequestAndResponse = Http._connectionListener
 var NODE_0_10 = Semver.satisfies(process.version, ">= 0.10 < 0.11")
-var NODE_GTE_19 = Semver.satisfies(process.version, ">= 19")
 module.exports = Mitm
 
 function Mitm() {
@@ -62,11 +61,12 @@ Mitm.prototype.enable = function() {
     this.stubs.stub(Http.globalAgent, "maxSockets", Infinity)
     this.stubs.stub(Https.globalAgent, "maxSockets", Infinity)
   }
-  else if (NODE_GTE_19) {
-    // Note v19 enables keep-alive for both the Http and Https globalAgents.
+
+  // Note v19 enables keep-alive for both the Http and Https globalAgents.
+  if (Http.globalAgent.keepAlive)
     this.stubs.stub(Http.globalAgent, "keepAlive", false)
+  if (Https.globalAgent.keepAlive)
     this.stubs.stub(Https.globalAgent, "keepAlive", false)
-  }
 
   // ClientRequest.prototype.onSocket is called synchronously from
   // ClientRequest's constructor and is a convenient place to hook into new
