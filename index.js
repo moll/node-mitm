@@ -97,7 +97,13 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
     writable: true
   }, opts))
 
-  this.emit("connect", client, opts)
+  let clientConnectError = false;
+  try {
+    this.emit("connect", client, opts)
+  } catch (error) {
+    clientConnectError = error;
+  }
+  
   if (client.bypassed) return orig.call(this, opts, done)
 
   // Don't use just "server" because socket.server is used in Node v8.12 and
@@ -113,11 +119,19 @@ Mitm.prototype.connect = function connect(orig, Socket, opts, done) {
 
   this.emit("connection", server, opts)
 
-  // Ensure connect is emitted in next ticks, otherwise it would be impossible
-  // to listen to it after calling Net.connect or listening to it after the
+  // Ensure events are emitted in next ticks, otherwise it would be impossible
+  // to listen to them after calling Net.connect or listening to it after the
   // ClientRequest emits "socket".
-  setTimeout(client.emit.bind(client, "connect"))
-  setTimeout(server.emit.bind(server, "connect"))
+  if (clientConnectError !== false) {
+    setTimeout(client.emit.bind(client, "error", clientConnectError))
+    setTimeout(server.emit.bind(server, "close", true))
+  } else {
+    // If client "fails to connect" dont bother emitting connect event on
+    // client or server
+    setTimeout(client.emit.bind(client, "connect"))
+    setTimeout(server.emit.bind(server, "connect"))
+  }
+
 
   return client
 }
