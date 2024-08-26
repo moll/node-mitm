@@ -516,6 +516,25 @@ describe("Mitm", function() {
         })
       })
 
+      it("must provide the client socket and options via _mitm", function(done) {
+        var clientSocket;
+        var connectOpts;
+        this.mitm.on("connect", function (socket, opts) {
+          clientSocket = socket
+          connectOpts = opts
+          clientSocket.must.be.an.instanceof(Object)
+          connectOpts.host.must.equal("foo")
+        }).on("request", function(req, res) {
+          req.connection._mitm.must.be.an.instanceof(Object)
+          req.connection._mitm.opts.must.be(connectOpts)
+          req.connection._mitm.client.must.be(clientSocket)
+          done()
+        })
+
+        var client = request({host: "foo"})
+        client.end()
+      })
+
       it("must emit request on Mitm after multiple requests", function(done) {
         request({host: "foo"}).end()
         request({host: "foo"}).end()
